@@ -1,0 +1,22 @@
+{
+  "name": "purescript-quaternions",
+  "description": "A small library providing a Quaternion data type, as well as quaternion-based 3D rotations.",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-console": "^0.1.0",
+    "purescript-math": "^1.0.0",
+    "purescript-vector": "^0.3.0"
+  },
+  "resolutions": {
+    "purescript-math": "^1.0.0"
+  },
+  "devDependencies": {
+    "purescript-quickcheck": "^0.12.2"
+  }
+}
