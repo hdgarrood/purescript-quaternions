@@ -2,6 +2,10 @@
   "name": "purescript-quaternions",
   "description": "A small library providing a Quaternion data type, as well as quaternion-based 3D rotations.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hdgarrood/purescript-quaternions"
+  },
   "ignore": [
     "**/.*",
     "node_modules",
