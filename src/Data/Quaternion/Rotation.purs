@@ -85,7 +85,9 @@ showAngleAxis :: Rotation Number -> String
 showAngleAxis q =
   case toAngleAxis q of
     { angle, axis } ->
-      "(Rotation: angle=" <> show angle <> " axis=" <> show (Vec.toArray axis) <> ")"
+      "Rotation.fromAngleAxis " <>
+       "{ angle: " <> show angle <>
+       ", axis: " <> show axis <> "}"
 
 -- | The inverse of a rotation. The following should hold for any rotation `p`:
 -- |
