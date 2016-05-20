@@ -56,7 +56,7 @@ fromAngleAxis { angle, axis } =
         Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
 
 -- | Gives the angle and axis that a rotation represents. This is the inverse
--- | of `construct`.
+-- | of `fromAngleAxis`.
 toAngleAxis :: Rotation Number -> { angle :: Number, axis :: Vec3 Number }
 toAngleAxis (Rotation (Quaternion a b c d)) =
   let
@@ -80,7 +80,7 @@ instance eqRotation :: Eq a => Eq (Rotation a) where
 instance showRotation :: Show a => Show (Rotation a) where
   show (Rotation p) = "(Rotation " <> show p <> ")"
 
--- | An alternative string representation for debugging.
+-- | An alternative string representation, which can be useful for debugging.
 showAngleAxis :: Rotation Number -> String
 showAngleAxis q =
   case toAngleAxis q of
