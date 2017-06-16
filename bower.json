@@ -13,14 +13,11 @@
     "output"
   ],
   "dependencies": {
-    "purescript-console": "^0.1.0",
-    "purescript-math": "^1.0.0",
-    "purescript-vector": "^0.3.0"
-  },
-  "resolutions": {
-    "purescript-math": "^1.0.0"
+    "purescript-console": "^3.0.0",
+    "purescript-math": "^2.0.0",
+    "purescript-vector": "^2.0.0"
   },
   "devDependencies": {
-    "purescript-quickcheck": "^0.12.2"
+    "purescript-quickcheck": "^4.0.0"
   }
 }

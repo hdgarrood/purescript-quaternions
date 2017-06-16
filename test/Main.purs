@@ -17,6 +17,8 @@ import Data.Quaternion as Quaternion
 import Data.Quaternion.Rotation (Rotation)
 import Data.Quaternion.Rotation as Rotation
 
+import Math as Math
+
 newtype ArbQ = ArbQ (Quaternion Number)
 
 -- A generator of Number values between -100 and 100.
