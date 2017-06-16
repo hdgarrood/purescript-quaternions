@@ -128,14 +128,6 @@ instance ringQuaternion :: Ring a => Ring (Quaternion a) where
   sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
     Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
 
-instance commutativeRingQuaternion :: CommutativeRing a => CommutativeRing (Quaternion a)
-
-instance euclideanRingQuaternion :: EuclideanRing a => EuclideanRing (Quaternion a) where
-  div = leftDiv
-  mod _ _ = zero
-  degree _ = 1
-
-
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
 
