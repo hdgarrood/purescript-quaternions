@@ -48,11 +48,13 @@ instance ringQuaternion :: Ring a => Ring (Quaternion a) where
   sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
     Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
 
-instance moduloSemiringQuaternion :: DivisionRing a => ModuloSemiring (Quaternion a) where
+instance commutativeRingQuaternion :: CommutativeRing a => CommutativeRing (Quaternion a)
+
+instance euclideanRingQuaternion :: EuclideanRing a => EuclideanRing (Quaternion a) where
   div = leftDiv
   mod _ _ = zero
+  degree _ = 1
 
-instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a)
 
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
@@ -68,7 +70,7 @@ conjugate (Quaternion a b c d) =
 
 -- | The conjugate of a quaternion by another quaternion. Defined as
 -- | `conjBy p q = q * p * recip q`.
-conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
+conjugateBy :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
 
 norm :: Quaternion Number -> Number
@@ -100,20 +102,20 @@ versor q = scalarMul (1.0 / norm q) q
 
 -- | The reciprocal of a quaternion. Multiplying a quaternion by its reciprocal
 -- | yields 1.
-recip :: forall a. DivisionRing a => Quaternion a -> Quaternion a
+recip :: forall a. EuclideanRing a => Quaternion a -> Quaternion a
 recip q = scalarMul (one / normSquare q) (conjugate q)
 
 -- | Left division; defined as `leftDiv p q = p * recip q`.
-leftDiv :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
+leftDiv :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
 leftDiv p q = p * recip q
 
 -- | Right division; defined as `rightDiv p q = recip q * p`.
-rightDiv :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
+rightDiv :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
 rightDiv p q = recip q * p
 
 -- | Approximate equality of quaternions, given an epsilon value specifying the
 -- | maximum amount that any of the four components is allowed to differ by.
-approxEq :: forall a. (Ord a, Ring a) => a -> Quaternion a -> Quaternion a -> Boolean
+approxEq :: forall a. Ord a => Ring a => a -> Quaternion a -> Quaternion a -> Boolean
 approxEq eps (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
   ok a1 a2 && ok b1 b2 && ok c1 c2 && ok d1 d2
   where

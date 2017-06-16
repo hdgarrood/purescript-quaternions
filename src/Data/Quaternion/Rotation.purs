@@ -20,6 +20,7 @@ import Data.Vector as Vec
 import Data.Vector3 (Vec3)
 import Data.Vector3 as Vec3
 import Math as Math
+import Partial.Unsafe (unsafePartial)
 
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, recip, versor)
 
@@ -51,7 +52,7 @@ fromAngleAxis { angle, axis } =
     halfAngle = 0.5 * angle
     a = Math.sin halfAngle
   in
-    case Vec.toArray (Vec.normalize axis) of
+    unsafePartial $ case Vec.toArray (Vec.normalize axis) of
       [x, y, z] ->
         Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
 
@@ -93,7 +94,7 @@ showAngleAxis q =
 -- |
 -- | * `inverse p <> p == mempty`
 -- | * `p <> inverse p == mempty`
-inverse :: forall a. DivisionRing a => Rotation a -> Rotation a
+inverse :: forall a. EuclideanRing a => Rotation a -> Rotation a
 inverse (Rotation p) = Rotation (recip p)
 
 -- | The action of a rotation on a vector in 3D space. This is a group action,
@@ -101,8 +102,8 @@ inverse (Rotation p) = Rotation (recip p)
 -- |
 -- | * Identity: `act mempty == id`
 -- | * Compatibility: `act p (act q v) = act (p <> q) v`
-act :: forall a. DivisionRing a => Rotation a -> Vec3 a -> Vec3 a
+act :: forall a. EuclideanRing a => Rotation a -> Vec3 a -> Vec3 a
 act (Rotation p) v =
-  case Vec.toArray v of
+  unsafePartial $ case Vec.toArray v of
     [x, y, z] ->
       vectorPart (Quaternion zero x y z `conjugateBy` p)
