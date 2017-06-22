@@ -18,6 +18,7 @@
     "purescript-vector": "^2.0.0"
   },
   "devDependencies": {
-    "purescript-quickcheck": "^4.0.0"
+    "purescript-quickcheck": "^4.0.0",
+    "purescript-psci-support": "^3.0.0"
   }
 }
