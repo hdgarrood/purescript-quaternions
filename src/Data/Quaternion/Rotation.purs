@@ -22,7 +22,7 @@ import Data.Vector3 as Vec3
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
-import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, recip, versor)
+import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
 
 -- | A rotation in three-dimensional space, represented by a unit quaternion
 -- | (also known as a versor).
@@ -94,7 +94,7 @@ showAngleAxis q =
 -- |
 -- | * `inverse p <> p == mempty`
 -- | * `p <> inverse p == mempty`
-inverse :: forall a. EuclideanRing a => Rotation a -> Rotation a
+inverse :: forall a. DivisionRing a => Rotation a -> Rotation a
 inverse (Rotation p) = Rotation (recip p)
 
 -- | The action of a rotation on a vector in 3D space. This is a group action,
@@ -102,7 +102,7 @@ inverse (Rotation p) = Rotation (recip p)
 -- |
 -- | * Identity: `act mempty == id`
 -- | * Compatibility: `act p (act q v) = act (p <> q) v`
-act :: forall a. EuclideanRing a => Rotation a -> Vec3 a -> Vec3 a
+act :: forall a. DivisionRing a => Rotation a -> Vec3 a -> Vec3 a
 act (Rotation p) v =
   unsafePartial $ case Vec.toArray v of
     [x, y, z] ->

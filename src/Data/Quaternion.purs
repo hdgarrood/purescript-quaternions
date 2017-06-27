@@ -93,9 +93,9 @@ import Math as Math
 -- | instance either.
 -- |
 -- | This means, amongst other things, that the `(/)` operator from Prelude
--- | cannot be used with `Quaternion` values. This module instead exports
--- | functions `leftDiv` and `rightDiv` for left- and right-division
--- | respectively.
+-- | cannot be used with `Quaternion` values. However, `Quaternion` does have
+-- | a `DivisionRing` instance, so you can use `leftDiv` and `rightDiv` from
+-- | the module `Data.DivisionRing` from the `prelude` library instead.
 data Quaternion a = Quaternion a a a a
 
 instance eqQuaternion :: Eq a => Eq (Quaternion a) where
@@ -128,6 +128,9 @@ instance ringQuaternion :: Ring a => Ring (Quaternion a) where
   sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
     Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
 
+instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a) where
+  recip q = scalarMul (recip (normSquare q)) (conjugate q)
+
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
 
@@ -142,7 +145,7 @@ conjugate (Quaternion a b c d) =
 
 -- | The conjugate of a quaternion by another quaternion. Defined as
 -- | `conjBy p q = q * p * recip q`.
-conjugateBy :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
+conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
 
 norm :: Quaternion Number -> Number
@@ -173,19 +176,6 @@ scalarMul k' (Quaternion a b c d) =
 -- | norm will give you back the original quaternion.
 versor :: Quaternion Number -> Quaternion Number
 versor q = scalarMul (1.0 / norm q) q
-
--- | The reciprocal of a quaternion. Multiplying a quaternion by its reciprocal
--- | yields 1.
-recip :: forall a. EuclideanRing a => Quaternion a -> Quaternion a
-recip q = scalarMul (one / normSquare q) (conjugate q)
-
--- | Left division; defined as `leftDiv p q = p * recip q`.
-leftDiv :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
-leftDiv p q = p * recip q
-
--- | Right division; defined as `rightDiv p q = recip q * p`.
-rightDiv :: forall a. EuclideanRing a => Quaternion a -> Quaternion a -> Quaternion a
-rightDiv p q = recip q * p
 
 -- | Approximate equality of quaternions, given an epsilon value specifying the
 -- | maximum amount that any of the four components is allowed to differ by.
