@@ -1,27 +1,34 @@
 module Test.Main where
 
 import Prelude
-import Data.Monoid
+import Data.Monoid (mempty)
 import Data.Array as Array
-import Data.Foldable (foldMap, and)
+import Data.Foldable (foldMap, and, maximum)
 import Data.Vector as Vec
 import Data.Vector3 (Vec3)
 import Data.Vector3 as Vec3
-import Test.QuickCheck
+import Data.Matrix as Mat
+import Data.Matrix4 as Mat4
+import Test.QuickCheck (quickCheck, (<?>))
 import Test.QuickCheck.Gen as Gen
-import Test.QuickCheck.Arbitrary
-import Control.Monad.Eff.Console (log)
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (log, CONSOLE)
+import Control.Monad.Eff.Exception (EXCEPTION)
+import Control.Monad.Eff.Random (RANDOM)
+import Partial.Unsafe (unsafePartial)
 
-import Data.Quaternion hiding (approxEq)
+import Data.Quaternion (Quaternion(..), norm)
+import Data.Maybe (fromJust)
 import Data.Quaternion as Quaternion
-import Data.Quaternion.Rotation (Rotation)
+import Data.Quaternion.Rotation (Rotation, showAngleAxis)
 import Data.Quaternion.Rotation as Rotation
-
 import Math as Math
 
 newtype ArbQ = ArbQ (Quaternion Number)
 
 -- A generator of Number values between -100 and 100.
+smallNum :: Gen.Gen Number
 smallNum = map (\x -> (x * 200.0) - 100.0) arbitrary
 
 instance arbQ :: Arbitrary ArbQ where
@@ -34,6 +41,7 @@ instance arbQ :: Arbitrary ArbQ where
 
 newtype ArbRot = ArbRot (Rotation Number)
 
+runArbRot :: ArbRot -> Rotation Number
 runArbRot (ArbRot p) = p
 
 instance arbRot :: Arbitrary ArbRot where
@@ -51,15 +59,19 @@ instance arbV3 :: Arbitrary ArbV3 where
       <*> smallNum
       <*> smallNum
 
+epsilon :: Number
 epsilon = 0.00000001
 
+approxEq :: Number -> Number -> Boolean
 approxEq x y = Math.abs (x - y) < epsilon
 
+vApproxEq :: forall n. Vec.Vec n Number -> Vec.Vec n Number -> Boolean
 vApproxEq x y =
   case Vec.toArray x, Vec.toArray y of
     xs, ys ->
       and (Array.zipWith approxEq xs ys)
 
+qApproxEq :: Quaternion Number -> Quaternion Number -> Boolean
 qApproxEq = Quaternion.approxEq epsilon
 
 newtype LargeArray a = LargeArray (Array a)
@@ -68,9 +80,9 @@ instance arbLargeArray :: Arbitrary a => Arbitrary (LargeArray a) where
   arbitrary =
     map LargeArray (Gen.chooseInt 100 1000 >>= \x -> Gen.vectorOf x arbitrary)
 
+main :: forall e. Eff (console :: CONSOLE, exception :: EXCEPTION, random :: RANDOM | e) Unit
 main = do
   let showR = Rotation.showAngleAxis
-
   log "fromAngleAxis and toAngleAxis are approximate inverses"
   quickCheck \(ArbRot p) ->
     let
@@ -102,3 +114,12 @@ main = do
   quickCheck \(ArbV3 v) (ArbRot p) (ArbRot q) ->
     vApproxEq (Rotation.act (p <> q) v) (Rotation.act p (Rotation.act q v))
     <?> ("p: " <> showR p <> ", q: " <> showR q <> ", v: " <> show v)
+
+  log "(toMat4 <<< fromAngleAxis) equivalent to Data.Matrix.makeRotate"
+  quickCheck \(ArbV3 v) t ->
+    let
+      amr = Mat.toArray $ Mat4.makeRotate t v
+      amm = Mat.toArray $ Rotation.toMat4 (Rotation.fromAngleAxis { angle : t, axis : v})
+      mad = unsafePartial $ fromJust $ maximum (map Math.abs (Array.zipWith (-) amr amm))
+    in
+      approxEq mad 0.0 <?> ("maxabsdiff: " <> show mad)

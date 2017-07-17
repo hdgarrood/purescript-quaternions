@@ -128,8 +128,13 @@ instance ringQuaternion :: Ring a => Ring (Quaternion a) where
   sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
     Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
 
+
+instance functorQuaternion :: Functor Quaternion where
+  map f (Quaternion a b c d) = Quaternion (f a) (f b) (f c) (f d)
+
 instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a) where
   recip q = scalarMul (recip (normSquare q)) (conjugate q)
+
 
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
