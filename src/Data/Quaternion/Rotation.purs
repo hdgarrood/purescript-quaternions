@@ -113,6 +113,10 @@ act (Rotation p) v =
     [x, y, z] ->
       vectorPart (Quaternion zero x y z `conjugateBy` p)
 
+-- | Though all functions in the library that create a Rotation ensure that
+-- | the underlying Quaternion has unit magnitude, some computations may result
+-- | in the magnitude drifting away from 1.0 for numerical or other reasons.
+-- | normalize takes a possibly-drifted Rotation and returns a proper Rotation.
 normalize :: Rotation Number -> Rotation Number
 normalize (Rotation q) = Rotation (versor q)
 
