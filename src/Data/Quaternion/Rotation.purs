@@ -113,15 +113,16 @@ act (Rotation p) v =
     [x, y, z] ->
       vectorPart (Quaternion zero x y z `conjugateBy` p)
 
--- | Though all functions in the library that create a Rotation ensure that
--- | the underlying Quaternion has unit magnitude, some computations may result
--- | in the magnitude drifting away from 1.0 for numerical or other reasons.
--- | normalize takes a possibly-drifted Rotation and returns a proper Rotation.
+-- | Though all functions in this library which create a `Rotation` ensure that
+-- | the underlying `Quaternion` has magnitude 1, after a sufficient number of
+-- | arithmetic operations the magnitude may drift away from 1. In this case
+-- | `normalize` can be used; `normalize` takes a possibly-drifted `Rotation`
+-- | and rescales if it necessary, so that its magnitude returns to 1.
 normalize :: Rotation Number -> Rotation Number
 normalize (Rotation q) = Rotation (versor q)
 
 toMat4 :: Rotation Number -> Mat4
-toMat4 (Rotation (Quaternion w x y z) ) =
+toMat4 (Rotation (Quaternion w x y z)) =
   let
     xx = x * x
     xy = x * y
