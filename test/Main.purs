@@ -3,11 +3,12 @@ module Test.Main where
 import Prelude
 import Data.Monoid (mempty)
 import Data.Array as Array
-import Data.Foldable (foldMap, and, maximum)
+import Data.Foldable (foldMap, and, sum)
 import Data.Vector as Vec
 import Data.Vector3 (Vec3)
 import Data.Vector3 as Vec3
 import Data.Matrix as Mat
+import Data.Matrix4 (Mat4)
 import Data.Matrix4 as Mat4
 import Test.QuickCheck (quickCheck, (<?>))
 import Test.QuickCheck.Gen as Gen
@@ -16,12 +17,10 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (log, CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM)
-import Partial.Unsafe (unsafePartial)
 
-import Data.Quaternion (Quaternion(..), norm)
-import Data.Maybe (fromJust)
+import Data.Quaternion (Quaternion(..))
 import Data.Quaternion as Quaternion
-import Data.Quaternion.Rotation (Rotation, showAngleAxis)
+import Data.Quaternion.Rotation (Rotation)
 import Data.Quaternion.Rotation as Rotation
 import Math as Math
 
@@ -80,6 +79,13 @@ instance arbLargeArray :: Arbitrary a => Arbitrary (LargeArray a) where
   arbitrary =
     map LargeArray (Gen.chooseInt 100 1000 >>= \x -> Gen.vectorOf x arbitrary)
 
+matDistance :: Mat4 -> Mat4 -> Number
+matDistance x y =
+  let
+    magnitude x' = sum (Array.zipWith (*) x' x')
+  in
+    magnitude (Array.zipWith (-) (Mat.toArray x) (Mat.toArray y))
+
 main :: forall e. Eff (console :: CONSOLE, exception :: EXCEPTION, random :: RANDOM | e) Unit
 main = do
   let showR = Rotation.showAngleAxis
@@ -94,7 +100,7 @@ main = do
   log "Rotations are versors"
   quickCheck \(ArbRot p) ->
     let
-      n = norm (Rotation.toQuaternion p)
+      n = Quaternion.norm (Rotation.toQuaternion p)
     in
       approxEq n 1.0 <?> ("p: " <> show p <> ", n: " <> show n)
 
@@ -102,7 +108,7 @@ main = do
   quickCheck \(LargeArray xs) ->
     let
       product = foldMap runArbRot xs
-      n = norm (Rotation.toQuaternion product)
+      n = Quaternion.norm (Rotation.toQuaternion product)
     in
       approxEq n 1.0 <?> ("count: " <> show (Array.length xs) <> ", n: " <> show n)
 
@@ -116,10 +122,10 @@ main = do
     <?> ("p: " <> showR p <> ", q: " <> showR q <> ", v: " <> show v)
 
   log "(toMat4 <<< fromAngleAxis) equivalent to Data.Matrix.makeRotate"
-  quickCheck \(ArbV3 v) t ->
+  quickCheck \(ArbV3 axis) angle ->
     let
-      amr = Mat.toArray $ Mat4.makeRotate t v
-      amm = Mat.toArray $ Rotation.toMat4 (Rotation.fromAngleAxis { angle : t, axis : v})
-      mad = unsafePartial $ fromJust $ maximum (map Math.abs (Array.zipWith (-) amr amm))
+      dist = matDistance
+              (Mat4.makeRotate angle axis)
+              (Rotation.toMat4 (Rotation.fromAngleAxis { angle, axis }))
     in
-      approxEq mad 0.0 <?> ("maxabsdiff: " <> show mad)
+      approxEq dist 0.0 <?> ("angle: " <> show angle <> ", axis: " <> show axis)
