@@ -12,6 +12,8 @@ module Data.Quaternion.Rotation
   , showAngleAxis
   , inverse
   , act
+  , normalize
+  , toMat4
   ) where
 
 import Prelude
@@ -19,6 +21,9 @@ import Data.Monoid (class Monoid)
 import Data.Vector as Vec
 import Data.Vector3 (Vec3)
 import Data.Vector3 as Vec3
+import Data.Matrix4 as Mat4
+import Data.Matrix4 (Mat4)
+
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
@@ -107,3 +112,28 @@ act (Rotation p) v =
   unsafePartial $ case Vec.toArray v of
     [x, y, z] ->
       vectorPart (Quaternion zero x y z `conjugateBy` p)
+
+-- | Though all functions in the library that create a Rotation ensure that
+-- | the underlying Quaternion has unit magnitude, some computations may result
+-- | in the magnitude drifting away from 1.0 for numerical or other reasons.
+-- | normalize takes a possibly-drifted Rotation and returns a proper Rotation.
+normalize :: Rotation Number -> Rotation Number
+normalize (Rotation q) = Rotation (versor q)
+
+toMat4 :: Rotation Number -> Mat4
+toMat4 (Rotation (Quaternion w x y z) ) =
+  let
+    xx = x * x
+    xy = x * y
+    xz = x * z
+    xw = x * w
+    yy = y * y
+    yz = y * z
+    yw = y * w
+    zz = z * z
+    zw = z * w
+  in
+    Mat4.mat4 [1.0-2.0*(yy+zz),     2.0*(xy+zw),     2.0*(xz-yw), 0.0,
+                   2.0*(xy-zw), 1.0-2.0*(xx+zz),     2.0*(yz+xw), 0.0,
+                   2.0*(xz+yw),     2.0*(yz-xw), 1.0-2.0*(xx+yy), 0.0,
+                           0.0,             0.0,             0.0, 1.0]
