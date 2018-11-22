@@ -141,17 +141,17 @@ instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a)
 
 
 -- | The real part of the quaternion, that is, the first component. Defined as
---
---     \(Quaternion a _ _ _) -> a
---
+-- |
+-- |     \(Quaternion a _ _ _) -> a
+-- |
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
 
 -- | The vector part of the quaternion, that is, the second, third, and fourth
--- components, represented as an array with exactly 3 elements. Defined as
---
---     |(Quaternion _ x y z) -> vec3 x y z
---
+-- | components, represented as an array with exactly 3 elements. Defined as
+-- |
+-- |     \(Quaternion _ x y z) -> vec3 x y z
+-- |
 vectorPart :: forall a. Quaternion a -> Vec3 a
 vectorPart (Quaternion _ x y z) = vec3 x y z
 
@@ -162,7 +162,9 @@ conjugate (Quaternion a b c d) =
   Quaternion a (-b) (-c) (-d)
 
 -- | The conjugate of a quaternion by another quaternion. Defined as
--- | `conjBy p q = q * p * recip q`.
+-- |
+-- |     \p q -> q * p * recip q
+-- |
 conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
 
