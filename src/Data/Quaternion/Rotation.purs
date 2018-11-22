@@ -18,8 +18,6 @@ module Data.Quaternion.Rotation
 
 import Prelude
 
-import Data.Monoid (class Monoid)
-
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
