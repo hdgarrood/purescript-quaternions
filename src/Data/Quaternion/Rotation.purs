@@ -17,17 +17,15 @@ module Data.Quaternion.Rotation
   ) where
 
 import Prelude
+
 import Data.Monoid (class Monoid)
-import Data.Vector as Vec
-import Data.Vector3 (Vec3)
-import Data.Vector3 as Vec3
-import Data.Matrix4 as Mat4
-import Data.Matrix4 (Mat4)
 
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
+import Data.Quaternion.Vec3 (Vec3)
+import Data.Quaternion.Vec3 as Vec3
 
 -- | A rotation in three-dimensional space, represented by a unit quaternion
 -- | (also known as a versor).
@@ -57,7 +55,7 @@ fromAngleAxis { angle, axis } =
     halfAngle = 0.5 * angle
     a = Math.sin halfAngle
   in
-    unsafePartial $ case Vec.toArray (Vec.normalize axis) of
+    unsafePartial $ case Vec3.toArray (Vec3.normalize axis) of
       [x, y, z] ->
         Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
 
@@ -109,7 +107,7 @@ inverse (Rotation p) = Rotation (recip p)
 -- | * Compatibility: `act p (act q v) = act (p <> q) v`
 act :: forall a. DivisionRing a => Rotation a -> Vec3 a -> Vec3 a
 act (Rotation p) v =
-  unsafePartial $ case Vec.toArray v of
+  unsafePartial $ case Vec3.toArray v of
     [x, y, z] ->
       vectorPart (Quaternion zero x y z `conjugateBy` p)
 
@@ -121,7 +119,9 @@ act (Rotation p) v =
 normalize :: Rotation Number -> Rotation Number
 normalize (Rotation q) = Rotation (versor q)
 
-toMat4 :: Rotation Number -> Mat4
+-- | Represent a Rotation as a 4-by-4 matrix. The return value is an array with
+-- | precisely 16 elements, in row-major order.
+toMat4 :: Rotation Number -> Array Number
 toMat4 (Rotation (Quaternion w x y z)) =
   let
     xx = x * x
@@ -134,7 +134,7 @@ toMat4 (Rotation (Quaternion w x y z)) =
     zz = z * z
     zw = z * w
   in
-    Mat4.mat4 [1.0-2.0*(yy+zz),     2.0*(xy+zw),     2.0*(xz-yw), 0.0,
-                   2.0*(xy-zw), 1.0-2.0*(xx+zz),     2.0*(yz+xw), 0.0,
-                   2.0*(xz+yw),     2.0*(yz-xw), 1.0-2.0*(xx+yy), 0.0,
-                           0.0,             0.0,             0.0, 1.0]
+    [1.0-2.0*(yy+zz),     2.0*(xy+zw),     2.0*(xz-yw), 0.0,
+         2.0*(xy-zw), 1.0-2.0*(xx+zz),     2.0*(yz+xw), 0.0,
+         2.0*(xz+yw),     2.0*(yz-xw), 1.0-2.0*(xx+yy), 0.0,
+                 0.0,             0.0,             0.0, 1.0]

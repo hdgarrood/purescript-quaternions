@@ -77,11 +77,16 @@
 -- | The most important application of quaternions in computing is for
 -- | representing orientations and rotations in 3D space; see the
 -- | Data.Quaternion.Rotation module for more details of this.
-module Data.Quaternion where
+module Data.Quaternion
+  ( module Data.Quaternion
+  , module ReExports
+  ) where
 
 import Prelude
-import Data.Vector3 (Vec3(), vec3)
 import Math as Math
+import Data.Quaternion.Vec3 (Vec3, vec3)
+
+import Data.DivisionRing (leftDiv, rightDiv) as ReExports
 
 -- | A quaternion. The type parameter denotes the underlying type. Note that
 -- | the underlying type should be a reasonable approximation of the real
@@ -95,12 +100,11 @@ import Math as Math
 -- | This means, amongst other things, that the `(/)` operator from Prelude
 -- | cannot be used with `Quaternion` values. However, `Quaternion` does have
 -- | a `DivisionRing` instance, so you can use `leftDiv` and `rightDiv` from
--- | the module `Data.DivisionRing` from the `prelude` library instead.
+-- | the module `Data.DivisionRing` from the `prelude` library instead. These
+-- | functions are also re-exported from this module for convenience.
 data Quaternion a = Quaternion a a a a
 
-instance eqQuaternion :: Eq a => Eq (Quaternion a) where
-  eq (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
-    a1 == a2 && b1 == b2 && c1 == c2 && d1 == d2
+derive instance eqQuaternion :: Eq a => Eq (Quaternion a)
 
 instance showQuaternion :: Show a => Show (Quaternion a) where
   show (Quaternion a b c d) =
@@ -136,9 +140,18 @@ instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a)
   recip q = scalarMul (recip (normSquare q)) (conjugate q)
 
 
+-- | The real part of the quaternion, that is, the first component. Defined as
+--
+--     \(Quaternion a _ _ _) -> a
+--
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion a _ _ _) = a
 
+-- | The vector part of the quaternion, that is, the second, third, and fourth
+-- components, represented as an array with exactly 3 elements. Defined as
+--
+--     |(Quaternion _ x y z) -> vec3 x y z
+--
 vectorPart :: forall a. Quaternion a -> Vec3 a
 vectorPart (Quaternion _ x y z) = vec3 x y z
 
