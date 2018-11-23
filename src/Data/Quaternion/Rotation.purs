@@ -110,6 +110,11 @@ toAngleAxis (Rotation (Quaternion a b c d)) =
     { angle, axis }
 
 -- | An alternative string representation, which can be useful for debugging.
+-- | For example:
+-- |
+-- |     > showAngleAxis (fromQuaternion (i+j))
+-- |     "Rotation.fromAngleAxis { angle: 3.141592653589793, axis: [0.7071067811865475,0.7071067811865475,0.0]}"
+-- |
 showAngleAxis :: Rotation -> String
 showAngleAxis q =
   case toAngleAxis q of
