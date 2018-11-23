@@ -97,8 +97,12 @@ fromAngleAxis { angle, axis } =
       [x, y, z] ->
         Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
 
--- | Gives the angle and axis that a rotation represents. This is the inverse
--- | of `fromAngleAxis`.
+-- | Gives the angle and axis that a rotation represents. The axis returned is
+-- | a unit-length vector. This is approximately an inverse of `fromAngleAxis`,
+-- | in that `fromAngleAxis <<< toAngleAxis == identity`. However,
+-- | `toAngleAxis <<< fromAngleAxis` is not equal to the identity function,
+-- | because the axis returned will always be of unit length (and because of
+-- | floating point inaccuracy).
 toAngleAxis :: Rotation -> { angle :: Number, axis :: Vec3 Number }
 toAngleAxis (Rotation (Quaternion a b c d)) =
   let

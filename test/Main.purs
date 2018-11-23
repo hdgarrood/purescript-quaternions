@@ -113,6 +113,23 @@ main = do
       rApproxEq p q
       <?> ("p: " <> show p <> ", q: " <> show q)
 
+  log "toAngleAxis returns a unit-length axis"
+  quickCheck \(ArbRot p) ->
+    let
+      { axis } = Rotation.toAngleAxis p
+    in
+      approxEq (Vec3.magnitude axis) 1.0
+      <?> ("p: " <> show p)
+
+  log "fromAngleAxis doesn't mind about the axis magnitude"
+  quickCheck \(ArbV3 v) theta k ->
+    let
+      p = Rotation.fromAngleAxis { angle: theta, axis: v }
+      q = Rotation.fromAngleAxis { angle: theta, axis: Vec3.scalarMul k v }
+    in
+      rApproxEq p q
+      <?> ("v: " <> show v <> ", k: " <> show k)
+
   log "Rotation matrices agree with rotations"
   quickCheck \(ArbRot p) (ArbV3 v) ->
     let
