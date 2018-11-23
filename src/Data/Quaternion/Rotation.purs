@@ -7,15 +7,15 @@ module Data.Quaternion.Rotation
   ( Rotation()
   , fromQuaternion
   , toQuaternion
-  , inverse
-  , act
-  , normalize
-  , approxEq
-  , showAngleAxis
   , fromAngleAxis
   , toAngleAxis
-  , toRotationMatrix
+  , showAngleAxis
   , fromRotationMatrix
+  , toRotationMatrix
+  , act
+  , inverse
+  , normalize
+  , approxEq
   ) where
 
 import Prelude
