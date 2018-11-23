@@ -225,6 +225,17 @@ norm q = Math.sqrt (normSquare q)
 normSquare :: forall a. Semiring a => Quaternion a -> a
 normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
 
+-- | The ℓ^∞ norm (when considering the quaternions as a 4-dimensional real
+-- | vector space); returns the maximum absolute value of the four components.
+-- | Like `norm`, this function also makes the quaternions into a normed space,
+-- | although it is a little different to one to the one given by `norm`. For
+-- | example:
+-- |
+-- |     infinityNorm (Quaternion 1.0 (-2.0) 3.0 (-4.0)) = 4.0
+-- |
+infinityNorm :: forall a. Ord a => Ring a => Quaternion a -> a
+infinityNorm = unwrap <<< foldMap1 (Max <<< abs)
+
 i :: forall a. Semiring a => Quaternion a
 i = Quaternion zero one zero zero
 
