@@ -7,25 +7,24 @@ module Data.Quaternion.Rotation
   ( Rotation()
   , fromQuaternion
   , toQuaternion
-  , fromAngleAxis
-  , toAngleAxis
-  , showAngleAxis
   , inverse
   , act
   , normalize
+  , showAngleAxis
+  , fromAngleAxis
+  , toAngleAxis
   , toRotationMatrix
   , fromRotationMatrix
   ) where
 
 import Prelude
 
-import Math as Math
-import Partial (crashWith)
-import Partial.Unsafe (unsafePartial)
-
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
 import Data.Quaternion.Vec3 (Vec3)
 import Data.Quaternion.Vec3 as Vec3
+import Math as Math
+import Partial (crashWith)
+import Partial.Unsafe (unsafePartial)
 
 -- | A rotation in three-dimensional space, represented by a unit quaternion
 -- | (also known as a versor).

@@ -142,10 +142,10 @@ instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a)
 
 -- | The real part of the quaternion, that is, the first component. Defined as
 -- |
--- |     \(Quaternion a _ _ _) -> a
+-- |     \(Quaternion w _ _ _) -> w
 -- |
 realPart :: forall a. Quaternion a -> a
-realPart (Quaternion a _ _ _) = a
+realPart (Quaternion w _ _ _) = w
 
 -- | The vector part of the quaternion, that is, the second, third, and fourth
 -- | components, represented as an array with exactly 3 elements. Defined as
@@ -168,12 +168,20 @@ conjugate (Quaternion a b c d) =
 conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
 
+-- | The norm of a quaternion. This makes the quaternions into a normed space;
+-- | it is equivalent to the standard Euclidean norm on R^4. Defined as
+-- |
+-- |     norm (Quaternion a b c d) = Math.sqrt (a*a + b*b + c*c + d*d)
+-- |
 norm :: Quaternion Number -> Number
 norm q = Math.sqrt (normSquare q)
 
 -- | The square of the norm of a quaternion. This is slightly easier to compute
 -- | than the actual norm, so may be useful in cases where you are worried
--- | about performance.
+-- | about performance. Defined as
+-- |
+-- |     normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
+-- |
 normSquare :: forall a. Semiring a => Quaternion a -> a
 normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
 
