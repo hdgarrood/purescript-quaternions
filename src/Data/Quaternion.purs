@@ -271,13 +271,10 @@ versor q = scalarMul (1.0 / norm q) q
 
 -- | Approximate equality of quaternions, given an epsilon value specifying the
 -- | maximum amount that any of the four components is allowed to differ by.
+-- | Defined as
+-- |
+-- |     \eps p q -> infinityNorm (p - q) < eps
+-- |
 approxEq :: forall a. Ord a => Ring a => a -> Quaternion a -> Quaternion a -> Boolean
-approxEq eps (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
-  ok a1 a2 && ok b1 b2 && ok c1 c2 && ok d1 d2
-  where
-  ok x y =
-    let
-      z = x - y
-      diff = if z > zero then z else negate z
-    in
-      diff < eps
+approxEq eps p q =
+  infinityNorm (p - q) < eps
