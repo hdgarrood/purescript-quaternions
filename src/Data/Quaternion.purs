@@ -78,17 +78,30 @@
 -- | representing orientations and rotations in 3D space; see the
 -- | Data.Quaternion.Rotation module for more details of this.
 module Data.Quaternion
-  ( module Data.Quaternion
+  ( Quaternion(..)
+  , realPart
+  , vectorPart
+  , i
+  , j
+  , k
+  , scalarMul
+  , conjugate
+  , conjugateBy
+  , approxEq
+  , norm
+  , normSquare
+  , infinityNorm
+  , versor
   , module ReExports
   ) where
 
 import Prelude
 
-import Data.Ord (abs)
-import Data.Ord.Max (Max(..))
-import Data.Newtype (unwrap)
 import Data.DivisionRing (leftDiv, rightDiv) as ReExports
 import Data.Foldable (class Foldable)
+import Data.Newtype (unwrap)
+import Data.Ord (abs)
+import Data.Ord.Max (Max(..))
 import Data.Quaternion.Vec3 (Vec3, vec3)
 import Data.Semigroup.Foldable (class Foldable1, foldMap1)
 import Math as Math
