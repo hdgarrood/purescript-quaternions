@@ -101,8 +101,7 @@ fromAngleAxis { angle, axis } =
 -- | a unit-length vector. This is approximately an inverse of `fromAngleAxis`,
 -- | in that `fromAngleAxis <<< toAngleAxis == identity`. However,
 -- | `toAngleAxis <<< fromAngleAxis` is not equal to the identity function,
--- | because the axis returned will always be of unit length (and because of
--- | floating point inaccuracy).
+-- | because the axis returned will always be of unit length.
 toAngleAxis :: Rotation -> { angle :: Number, axis :: Vec3 Number }
 toAngleAxis (Rotation (Quaternion a b c d)) =
   let
