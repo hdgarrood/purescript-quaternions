@@ -36,20 +36,32 @@ import Data.Quaternion.Vec3 as Vec3
 -- | The semigroup instance provides composition of rotations; `p <> q` gives
 -- | a rotation representating the rotation `q` followed by the rotation `p`.
 -- | Note that in general, this is not the same as `p` followed by `q`!
-newtype Rotation a = Rotation (Quaternion a)
+newtype Rotation = Rotation (Quaternion Number)
+
+derive instance eqRotation :: Eq Rotation
+
+instance semigroupRotation :: Semigroup Rotation where
+  append (Rotation p) (Rotation q) =
+    Rotation (p * q)
+
+instance monoidRotation :: Monoid Rotation where
+  mempty = Rotation one
+
+instance showRotation :: Show Rotation where
+  show (Rotation p) = "(Rotation " <> show p <> ")"
 
 -- | Construct a Rotation from any Quaternion, by normalizing to a versor.
-fromQuaternion :: Quaternion Number -> Rotation Number
+fromQuaternion :: Quaternion Number -> Rotation
 fromQuaternion = Rotation <<< versor
 
 -- | Get the underlying versor.
-toQuaternion :: forall a. Rotation a -> Quaternion a
+toQuaternion :: Rotation -> Quaternion Number
 toQuaternion (Rotation p) = p
 
 -- | Construct a `Rotation` representing the rotation by the specified angle
 -- | (in radians) about the specified axis. The rotation is clockwise from the
 -- | point of view of someone looking along the direction of the rotation axis.
-fromAngleAxis :: { angle :: Number, axis :: Vec3 Number } -> Rotation Number
+fromAngleAxis :: { angle :: Number, axis :: Vec3 Number } -> Rotation
 fromAngleAxis { angle, axis } =
   let
     halfAngle = 0.5 * angle
@@ -61,7 +73,7 @@ fromAngleAxis { angle, axis } =
 
 -- | Gives the angle and axis that a rotation represents. This is the inverse
 -- | of `fromAngleAxis`.
-toAngleAxis :: Rotation Number -> { angle :: Number, axis :: Vec3 Number }
+toAngleAxis :: Rotation -> { angle :: Number, axis :: Vec3 Number }
 toAngleAxis (Rotation (Quaternion a b c d)) =
   let
     halfAngle = Math.acos a
@@ -71,21 +83,8 @@ toAngleAxis (Rotation (Quaternion a b c d)) =
   in
     { angle, axis }
 
-instance semigroupRotation :: Ring a => Semigroup (Rotation a) where
-  append (Rotation p) (Rotation q) =
-    Rotation (p * q)
-
-instance monoidRotation :: Ring a => Monoid (Rotation a) where
-  mempty = Rotation one
-
-instance eqRotation :: Eq a => Eq (Rotation a) where
-  eq (Rotation p) (Rotation q) = p == q
-
-instance showRotation :: Show a => Show (Rotation a) where
-  show (Rotation p) = "(Rotation " <> show p <> ")"
-
 -- | An alternative string representation, which can be useful for debugging.
-showAngleAxis :: Rotation Number -> String
+showAngleAxis :: Rotation -> String
 showAngleAxis q =
   case toAngleAxis q of
     { angle, axis } ->
@@ -93,19 +92,23 @@ showAngleAxis q =
        "{ angle: " <> show angle <>
        ", axis: " <> show axis <> "}"
 
--- | The inverse of a rotation. The following should hold for any rotation `p`:
+-- | The inverse of a rotation; `inverse p` undoes the rotation represented by
+-- | `p`. The following should hold for any rotation `p`:
 -- |
 -- | * `inverse p <> p == mempty`
 -- | * `p <> inverse p == mempty`
-inverse :: forall a. DivisionRing a => Rotation a -> Rotation a
+-- |
+-- | although note that these may only hold approximately due to floating point
+-- | errors.
+inverse :: Rotation -> Rotation
 inverse (Rotation p) = Rotation (recip p)
 
 -- | The action of a rotation on a vector in 3D space. This is a group action,
--- | which means that the following hold:
+-- | which means that the following hold (approximately):
 -- |
--- | * Identity: `act mempty == id`
+-- | * Identity: `act mempty == identity`
 -- | * Compatibility: `act p (act q v) = act (p <> q) v`
-act :: forall a. DivisionRing a => Rotation a -> Vec3 a -> Vec3 a
+act :: Rotation -> Vec3 Number -> Vec3 Number
 act (Rotation p) v =
   unsafePartial $ case Vec3.toArray v of
     [x, y, z] ->
@@ -116,7 +119,7 @@ act (Rotation p) v =
 -- | arithmetic operations the magnitude may drift away from 1. In this case
 -- | `normalize` can be used; `normalize` takes a possibly-drifted `Rotation`
 -- | and rescales if it necessary, so that its magnitude returns to 1.
-normalize :: Rotation Number -> Rotation Number
+normalize :: Rotation -> Rotation
 normalize (Rotation q) = Rotation (versor q)
 
 -- The functions for converting to and from matrices are taken from
@@ -124,7 +127,7 @@ normalize (Rotation q) = Rotation (versor q)
 
 -- | Represent a Rotation as a 3-by-3 rotation matrix. The return value is an
 -- | array with exactly 9 elements, in column-major order.
-toRotationMatrix :: Rotation Number -> Array Number
+toRotationMatrix :: Rotation -> Array Number
 toRotationMatrix (Rotation (Quaternion w x y z)) =
   let
     xx = x * x
@@ -146,7 +149,7 @@ toRotationMatrix (Rotation (Quaternion w x y z)) =
 -- | the entries in column-major order. If the argument does not have 9
 -- | elements, or if it does not represent a rotation matrix, the behaviour of
 -- | this function is not defined.
-fromRotationMatrix :: Partial => Array Number -> Rotation Number
+fromRotationMatrix :: Partial => Array Number -> Rotation
 fromRotationMatrix [a11, a21, a31, a12, a22, a32, a13, a23, a33] =
   let
     qr = 0.5 * Math.sqrt (1.0 + a11 + a22 + a33)

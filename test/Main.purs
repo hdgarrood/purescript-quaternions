@@ -41,9 +41,9 @@ instance arbQ :: Arbitrary ArbQ where
       <*> smallNum
       <*> smallNum
 
-newtype ArbRot = ArbRot (Rotation Number)
+newtype ArbRot = ArbRot Rotation
 
-runArbRot :: ArbRot -> Rotation Number
+runArbRot :: ArbRot -> Rotation
 runArbRot (ArbRot p) = p
 
 instance arbRot :: Arbitrary ArbRot where
@@ -75,7 +75,7 @@ qApproxEq :: Quaternion Number -> Quaternion Number -> Boolean
 qApproxEq = Quaternion.approxEq epsilon
 
 -- Approximate equality for rotations
-rApproxEq :: Rotation Number -> Rotation Number -> Boolean
+rApproxEq :: Rotation -> Rotation -> Boolean
 rApproxEq p q =
   let
     p' = Rotation.toQuaternion p
