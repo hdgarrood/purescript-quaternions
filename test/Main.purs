@@ -76,14 +76,7 @@ qApproxEq = Quaternion.approxEq epsilon
 
 -- Approximate equality for rotations
 rApproxEq :: Rotation -> Rotation -> Boolean
-rApproxEq p q =
-  let
-    p' = Rotation.toQuaternion p
-    q' = Rotation.toQuaternion q
-  in
-    -- note that negating a rotation quaternion actually gives you another
-    -- quaternion representing the exact same rotation
-    (qApproxEq p' q' || qApproxEq (negate p') q')
+rApproxEq = Rotation.approxEq epsilon
 
 newtype LargeArray a = LargeArray (Array a)
 

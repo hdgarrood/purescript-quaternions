@@ -10,6 +10,7 @@ module Data.Quaternion.Rotation
   , inverse
   , act
   , normalize
+  , approxEq
   , showAngleAxis
   , fromAngleAxis
   , toAngleAxis
@@ -20,6 +21,7 @@ module Data.Quaternion.Rotation
 import Prelude
 
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
+import Data.Quaternion as Q
 import Data.Quaternion.Vec3 (Vec3)
 import Data.Quaternion.Vec3 as Vec3
 import Math as Math
@@ -56,6 +58,31 @@ fromQuaternion = Rotation <<< versor
 -- | Get the underlying versor.
 toQuaternion :: Rotation -> Quaternion Number
 toQuaternion (Rotation p) = p
+
+-- | Approximate equality of rotations, up to a specified tolerance. Note that,
+-- | for a unit quaternion `p`, the rotations represented by `p` and `-p` are
+-- | identical; this function takes this into account, so that, for example:
+-- |
+-- |     Rotation.approxEq epsilon
+-- |        (Rotation.fromQuaternion p)
+-- |        (Rotation.fromQuaternion (-p))
+-- |
+-- | is true for all `p :: Quaternion`. Defined as
+-- |
+-- |     \eps p q ->
+-- |        let
+-- |          p' = toQuaternion p
+-- |          q' = toQuaternion q
+-- |        in
+-- |          (Quaternion.approxEq p' q' || Quaternion.approxEq (negate p') q')
+-- |
+approxEq :: Number -> Rotation -> Rotation -> Boolean
+approxEq eps p q =
+  let
+    p' = toQuaternion p
+    q' = toQuaternion q
+  in
+    Q.approxEq eps p' q' || Q.approxEq eps (negate p') q'
 
 -- | Construct a `Rotation` representing the rotation by the specified angle
 -- | (in radians) about the specified axis. The rotation is clockwise from the
