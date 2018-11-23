@@ -17,7 +17,8 @@
     "purescript-math": "^2.1.1",
     "purescript-foldable-traversable": "^4.1.1",
     "purescript-orders": "^4.0.0",
-    "purescript-newtype": "^3.0.0"
+    "purescript-newtype": "^3.0.0",
+    "purescript-partial": "^2.0.0"
   },
   "devDependencies": {
     "purescript-quickcheck": "^5.0.0",
