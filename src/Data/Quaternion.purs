@@ -199,10 +199,15 @@ conjugate (Quaternion a b c d) =
 conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
 
--- | The norm of a quaternion. This makes the quaternions into a normed space;
--- | it is equivalent to the standard Euclidean norm on R^4. Defined as
+-- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
+-- | into a normed space; it is equivalent to the standard Euclidean norm on
+-- | R^4. Defined as
 -- |
 -- |     norm (Quaternion a b c d) = Math.sqrt (a*a + b*b + c*c + d*d)
+-- |
+-- | For example:
+-- |
+-- |     norm (Quaternion 1.0 (-2.0) 3.0 (-4.0)) = 5.477225575051661
 -- |
 norm :: Quaternion Number -> Number
 norm q = Math.sqrt (normSquare q)
@@ -212,6 +217,10 @@ norm q = Math.sqrt (normSquare q)
 -- | about performance. Defined as
 -- |
 -- |     normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
+-- |
+-- | For example:
+-- |
+-- |     normSquare (Quaternion 1.0 (-2.0) 3.0 (-4.0)) = 30.0
 -- |
 normSquare :: forall a. Semiring a => Quaternion a -> a
 normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
