@@ -3,7 +3,7 @@ module Test.Main where
 import Prelude
 
 import Data.Array as Array
-import Data.Foldable (foldMap, sum)
+import Data.Foldable (foldl, foldr, foldMap, sum)
 import Data.Quaternion (Quaternion(..))
 import Data.Quaternion as Quaternion
 import Data.Quaternion.Rotation (Rotation)
@@ -100,6 +100,17 @@ matDistance x y =
 
 main :: Effect Unit
 main = do
+  log "Foldable instance agrees with arrays"
+  quickCheck \(ArbQ p@(Quaternion a b c d)) ->
+    -- Use a non-associative operator here so that foldl and foldr are
+    -- distinguishable
+    let
+      p' = [a, b, c, d]
+    in
+      (foldl (-) 0.0 p == foldl (-) 0.0 p')
+      && (foldr (-) 0.0 p == foldr (-) 0.0 p')
+      <?> ("p: " <> show p)
+
   let showR = Rotation.showAngleAxis
   log "fromAngleAxis and toAngleAxis are approximate inverses"
   quickCheck \(ArbRot p) ->

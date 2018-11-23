@@ -83,10 +83,15 @@ module Data.Quaternion
   ) where
 
 import Prelude
-import Math as Math
-import Data.Quaternion.Vec3 (Vec3, vec3)
 
+import Data.Ord (abs)
+import Data.Ord.Max (Max(..))
+import Data.Newtype (unwrap)
 import Data.DivisionRing (leftDiv, rightDiv) as ReExports
+import Data.Foldable (class Foldable)
+import Data.Quaternion.Vec3 (Vec3, vec3)
+import Data.Semigroup.Foldable (class Foldable1, foldMap1)
+import Math as Math
 
 -- | A quaternion. The type parameter denotes the underlying type. Note that
 -- | the underlying type should be a reasonable approximation of the real
@@ -114,6 +119,36 @@ instance showQuaternion :: Show a => Show (Quaternion a) where
       show c <> " " <>
       show d <> ")"
 
+instance functorQuaternion :: Functor Quaternion where
+  map f (Quaternion a b c d) = Quaternion (f a) (f b) (f c) (f d)
+
+-- | The `Foldable` instance for `Quaternion` behaves as if the given
+-- | `Quaternion` were converted to a four-element array before folding, like
+-- | so:
+-- |
+-- |     foldr f z (Quaternion a b c d) = foldr f z [a, b, c, d]
+-- |
+-- | For example:
+-- |
+-- |     foldr (+) 0 (Quaternion 1.0 1.0 1.0 1.0) = 4.0
+-- |
+instance foldableQuaternion :: Foldable Quaternion where
+  foldr f z (Quaternion a b c d) =
+    a `f` (b `f` (c `f` (d `f` z)))
+  foldl f z (Quaternion a b c d) =
+    (((z `f` a) `f` b) `f` c) `f` d
+  foldMap = foldMap1
+
+-- | The `Foldable1` instance for `Quaternion` behaves as if the given
+-- | `Quaternion` were converted to a four-element array before folding. For
+-- | example:
+-- |
+-- |     foldMap1 Additive (Quaternion 1.0 1.0 1.0 1.0) = Additive 4.0
+-- |
+instance foldable1Quaternion :: Foldable1 Quaternion where
+  fold1 (Quaternion a b c d) = a <> b <> c <> d
+  foldMap1 f (Quaternion a b c d) = f a <> f b <> f c <> f d
+
 instance semiringQuaternion :: Ring a => Semiring (Quaternion a) where
   zero =
     Quaternion zero zero zero zero
@@ -131,10 +166,6 @@ instance semiringQuaternion :: Ring a => Semiring (Quaternion a) where
 instance ringQuaternion :: Ring a => Ring (Quaternion a) where
   sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
     Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
-
-
-instance functorQuaternion :: Functor Quaternion where
-  map f (Quaternion a b c d) = Quaternion (f a) (f b) (f c) (f d)
 
 instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a) where
   recip q = scalarMul (recip (normSquare q)) (conjugate q)
