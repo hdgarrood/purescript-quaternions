@@ -13,12 +13,14 @@ module Data.Quaternion.Rotation
   , inverse
   , act
   , normalize
-  , toMat4
+  , toRotationMatrix
+  , fromRotationMatrix
   ) where
 
 import Prelude
 
 import Math as Math
+import Partial (crashWith)
 import Partial.Unsafe (unsafePartial)
 
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
@@ -117,10 +119,13 @@ act (Rotation p) v =
 normalize :: Rotation Number -> Rotation Number
 normalize (Rotation q) = Rotation (versor q)
 
--- | Represent a Rotation as a 4-by-4 matrix. The return value is an array with
--- | precisely 16 elements, in row-major order.
-toMat4 :: Rotation Number -> Array Number
-toMat4 (Rotation (Quaternion w x y z)) =
+-- The functions for converting to and from matrices are taken from
+-- https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Rotation_matrix_.E2.86.94_quaternion
+
+-- | Represent a Rotation as a 3-by-3 rotation matrix. The return value is an
+-- | array with exactly 9 elements, in column-major order.
+toRotationMatrix :: Rotation Number -> Array Number
+toRotationMatrix (Rotation (Quaternion w x y z)) =
   let
     xx = x * x
     xy = x * y
@@ -132,7 +137,23 @@ toMat4 (Rotation (Quaternion w x y z)) =
     zz = z * z
     zw = z * w
   in
-    [1.0-2.0*(yy+zz),     2.0*(xy+zw),     2.0*(xz-yw), 0.0,
-         2.0*(xy-zw), 1.0-2.0*(xx+zz),     2.0*(yz+xw), 0.0,
-         2.0*(xz+yw),     2.0*(yz-xw), 1.0-2.0*(xx+yy), 0.0,
-                 0.0,             0.0,             0.0, 1.0]
+    [1.0-2.0*(yy+zz),     2.0*(xy+zw),     2.0*(xz-yw),
+         2.0*(xy-zw), 1.0-2.0*(xx+zz),     2.0*(yz+xw),
+         2.0*(xz+yw),     2.0*(yz-xw), 1.0-2.0*(xx+yy)]
+
+-- | Convert a 3-by-3 rotation matrix to a Rotation representing the same
+-- | rotation. The argument should be an array with exactly 9 elements, with
+-- | the entries in column-major order. If the argument does not have 9
+-- | elements, or if it does not represent a rotation matrix, the behaviour of
+-- | this function is not defined.
+fromRotationMatrix :: Partial => Array Number -> Rotation Number
+fromRotationMatrix [a11, a21, a31, a12, a22, a32, a13, a23, a33] =
+  let
+    qr = 0.5 * Math.sqrt (1.0 + a11 + a22 + a33)
+    qi = 0.25 / qr * (a32 - a23)
+    qj = 0.25 / qr * (a13 - a31)
+    qk = 0.25 / qr * (a21 - a12)
+  in
+    Rotation (Quaternion qr qi qj qk)
+fromRotationMatrix _ =
+  crashWith "Argument array is the wrong size; expected an array with 9 elements"

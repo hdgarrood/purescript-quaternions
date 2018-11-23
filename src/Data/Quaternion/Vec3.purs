@@ -8,6 +8,7 @@ module Data.Quaternion.Vec3
   , fromArray
   , normalize
   , magnitude
+  , dot
   , vzero
   , vadd
   , vsub
@@ -46,11 +47,17 @@ toArray (Vec3 v) = v
 fromArray :: forall a. Partial => Array a -> Vec3 a
 fromArray = Vec3
 
+dot :: forall a. Semiring a => Vec3 a -> Vec3 a -> a
+dot (Vec3 [x1, y1, z1]) (Vec3 [x2, y2, z2]) =
+  x1 * x2 + y1 * y2 + z1 * z2
+dot _ _ =
+  unsafeCrashWith "Vec3 invariant violated"
+
 vzero :: forall a. Semiring a => Vec3 a
 vzero = Vec3 [zero, zero, zero]
 
 vadd :: forall a. Semiring a => Vec3 a -> Vec3 a -> Vec3 a
-vadd (Vec3 [x1, y1 ,z1]) (Vec3 [x2, y2, z2]) =
+vadd (Vec3 [x1, y1, z1]) (Vec3 [x2, y2, z2]) =
   Vec3 [x1 + x2, y1 + y2, z1 + z2]
 vadd _ _ =
   unsafeCrashWith "Vec3 invariant violated"
