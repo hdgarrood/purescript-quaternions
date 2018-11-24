@@ -96,7 +96,7 @@ main = do
   log "scalarMul agrees with Quaternion multiplication"
   quickCheck \(ArbQ p) k ->
     Quaternion.scalarMul k p == (Quaternion k 0.0 0.0 0.0) * p
-    <?> (show { p, k })
+    <?> show { p, k }
 
   log "Foldable instance agrees with arrays"
   quickCheck \(ArbQ p@(Quaternion a b c d)) ->
@@ -107,7 +107,7 @@ main = do
     in
       (foldl (-) 0.0 p == foldl (-) 0.0 p')
       && (foldr (-) 0.0 p == foldr (-) 0.0 p')
-      <?> ("p: " <> show p)
+      <?> show { p }
 
   let showR = Rotation.showAngleAxis
   log "fromAngleAxis and toAngleAxis are approximate inverses"
@@ -116,7 +116,7 @@ main = do
       q = Rotation.fromAngleAxis (Rotation.toAngleAxis p)
     in
       rApproxEq p q
-      <?> ("p: " <> show p <> ", q: " <> show q)
+      <?> show { p, q }
 
   log "toAngleAxis returns a unit-length axis"
   quickCheck \(ArbRot p) ->
@@ -124,7 +124,7 @@ main = do
       { axis } = Rotation.toAngleAxis p
     in
       approxEq (Vec3.magnitude axis) 1.0
-      <?> ("p: " <> show p)
+      <?> show { p }
 
   log "fromAngleAxis doesn't mind about the axis magnitude"
   quickCheck \(ArbV3 v) theta k ->
@@ -133,7 +133,7 @@ main = do
       q = Rotation.fromAngleAxis { angle: theta, axis: Vec3.scalarMul k v }
     in
       rApproxEq p q
-      <?> ("v: " <> show v <> ", k: " <> show k)
+      <?> show { v, k }
 
   log "Rotation matrices agree with rotations"
   quickCheck \(ArbRot p) (ArbV3 v) ->
@@ -142,7 +142,7 @@ main = do
       w2 = unsafePartial (mat3mul (Rotation.toRotationMatrix p) v)
     in
       vApproxEq w1 w2
-      <?> ("p: " <> show p <> ", v: " <> show v)
+      <?> show { p, v }
 
   log "fromRotationMatrix and toRotationMatrix are approximate inverses"
   quickCheck \(ArbRot p) ->
@@ -150,14 +150,14 @@ main = do
       q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
     in
       rApproxEq p q
-      <?> ("p: " <> show p <> ", q: " <> show q)
+      <?> show { p, q }
 
   log "Rotations are versors"
   quickCheck \(ArbRot p) ->
     let
       n = Quaternion.norm (Rotation.toQuaternion p)
     in
-      approxEq n 1.0 <?> ("p: " <> show p <> ", n: " <> show n)
+      approxEq n 1.0 <?> show { p, n }
 
   log "Numerical stability"
   quickCheck \(LargeArray xs) ->
@@ -165,16 +165,16 @@ main = do
       product = foldMap runArbRot xs
       n = Quaternion.norm (Rotation.toQuaternion product)
     in
-      approxEq n 1.0 <?> ("count: " <> show (Array.length xs) <> ", n: " <> show n)
+      approxEq n 1.0 <?> show { count: Array.length xs, n }
 
   log "act is a group action: identity"
   quickCheck \(ArbV3 v) ->
-    Rotation.act mempty v == v <?> ("v: " <> show v)
+    Rotation.act mempty v == v <?> show { v }
 
   log "act is a group action: compatibility"
   quickCheck \(ArbV3 v) (ArbRot p) (ArbRot q) ->
     vApproxEq (Rotation.act (p <> q) v) (Rotation.act p (Rotation.act q v))
-    <?> ("p: " <> showR p <> ", q: " <> showR q <> ", v: " <> show v)
+    <?> show { p, q, v }
 
   -- log "(toMat4 <<< fromAngleAxis) equivalent to Data.Matrix.makeRotate"
   -- quickCheck \(ArbV3 axis) angle ->
