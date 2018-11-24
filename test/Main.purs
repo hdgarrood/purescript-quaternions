@@ -93,6 +93,11 @@ matDistance x y =
 
 main :: Effect Unit
 main = do
+  log "scalarMul agrees with Quaternion multiplication"
+  quickCheck \(ArbQ p) k ->
+    Quaternion.scalarMul k p == (Quaternion k 0.0 0.0 0.0) * p
+    <?> (show { p, k })
+
   log "Foldable instance agrees with arrays"
   quickCheck \(ArbQ p@(Quaternion a b c d)) ->
     -- Use a non-associative operator here so that foldl and foldr are
