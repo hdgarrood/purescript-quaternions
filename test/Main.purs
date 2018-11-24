@@ -109,7 +109,6 @@ main = do
       && (foldr (-) 0.0 p == foldr (-) 0.0 p')
       <?> show { p }
 
-  let showR = Rotation.showAngleAxis
   log "fromAngleAxis and toAngleAxis are approximate inverses"
   quickCheck \(ArbRot p) ->
     let
