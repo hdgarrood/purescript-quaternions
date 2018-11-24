@@ -125,31 +125,31 @@ data Quaternion a = Quaternion a a a a
 derive instance eqQuaternion :: Eq a => Eq (Quaternion a)
 
 instance showQuaternion :: Show a => Show (Quaternion a) where
-  show (Quaternion a b c d) =
+  show (Quaternion w x y z) =
     "(Quaternion " <>
-      show a <> " " <>
-      show b <> " " <>
-      show c <> " " <>
-      show d <> ")"
+      show w <> " " <>
+      show x <> " " <>
+      show y <> " " <>
+      show z <> ")"
 
 instance functorQuaternion :: Functor Quaternion where
-  map f (Quaternion a b c d) = Quaternion (f a) (f b) (f c) (f d)
+  map f (Quaternion w x y z) = Quaternion (f w) (f x) (f y) (f z)
 
 -- | The `Foldable` instance for `Quaternion` behaves as if the given
 -- | `Quaternion` were converted to a four-element array before folding, like
 -- | so:
 -- |
--- |     foldr f z (Quaternion a b c d) = foldr f z [a, b, c, d]
+-- |     foldr f z (Quaternion w x y z) = foldr f z [w, x, y, z]
 -- |
 -- | For example:
 -- |
 -- |     foldr (+) 0 (Quaternion 1.0 1.0 1.0 1.0) = 4.0
 -- |
 instance foldableQuaternion :: Foldable Quaternion where
-  foldr f z (Quaternion a b c d) =
-    a `f` (b `f` (c `f` (d `f` z)))
-  foldl f z (Quaternion a b c d) =
-    (((z `f` a) `f` b) `f` c) `f` d
+  foldr f z' (Quaternion w x y z) =
+    w `f` (x `f` (y `f` (z `f` z')))
+  foldl f z' (Quaternion w x y z) =
+    (((z' `f` w) `f` x) `f` y) `f` z
   foldMap = foldMap1
 
 -- | The `Foldable1` instance for `Quaternion` behaves as if the given
@@ -159,30 +159,29 @@ instance foldableQuaternion :: Foldable Quaternion where
 -- |     foldMap1 Additive (Quaternion 1.0 1.0 1.0 1.0) = Additive 4.0
 -- |
 instance foldable1Quaternion :: Foldable1 Quaternion where
-  fold1 (Quaternion a b c d) = a <> b <> c <> d
-  foldMap1 f (Quaternion a b c d) = f a <> f b <> f c <> f d
+  fold1 (Quaternion w x y z) = w <> x <> y <> z
+  foldMap1 f (Quaternion w x y z) = f w <> f x <> f y <> f z
 
 instance semiringQuaternion :: Ring a => Semiring (Quaternion a) where
   zero =
     Quaternion zero zero zero zero
-  add (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
-    Quaternion (a1 + a2) (b1 + b2) (c1 + c2) (d1 + d2)
+  add (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
+    Quaternion (w1 + w2) (x1 + x2) (y1 + y2) (z1 + z2)
   one =
     Quaternion one zero zero zero
-  mul (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
+  mul (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
     Quaternion
-      (a1*a2 - b1*b2 - c1*c2 - d1*d2)
-      (a1*b2 + b1*a2 + c1*d2 - d1*c2)
-      (a1*c2 - b1*d2 + c1*a2 + d1*b2)
-      (a1*d2 + b1*c2 - c1*b2 + d1*a2)
+      (w1*w2 - x1*x2 - y1*y2 - z1*z2)
+      (w1*x2 + x1*w2 + y1*z2 - z1*y2)
+      (w1*y2 - x1*z2 + y1*w2 + z1*x2)
+      (w1*z2 + x1*y2 - y1*x2 + z1*w2)
 
 instance ringQuaternion :: Ring a => Ring (Quaternion a) where
-  sub (Quaternion a1 b1 c1 d1) (Quaternion a2 b2 c2 d2) =
-    Quaternion (a1 - a2) (b1 - b2) (c1 - c2) (d1 - d2)
+  sub (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
+    Quaternion (w1 - w2) (x1 - x2) (y1 - y2) (z1 - z2)
 
 instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a) where
   recip q = scalarMul (recip (normSquare q)) (conjugate q)
-
 
 -- | The real part of the quaternion, that is, the first component. Defined as
 -- |
@@ -202,8 +201,8 @@ vectorPart (Quaternion _ x y z) = vec3 x y z
 -- | The conjugate of a quaternion. This operation negates the vector part of
 -- | the quaternion.
 conjugate :: forall a. Ring a => Quaternion a -> Quaternion a
-conjugate (Quaternion a b c d) =
-  Quaternion a (-b) (-c) (-d)
+conjugate (Quaternion w x y z) =
+  Quaternion w (-x) (-y) (-z)
 
 -- | The conjugate of a quaternion by another quaternion. Defined as
 -- |
@@ -216,7 +215,7 @@ conjugateBy p q = q * p * recip q
 -- | into a normed space; it is equivalent to the standard Euclidean norm on
 -- | R^4. Defined as
 -- |
--- |     norm (Quaternion a b c d) = Math.sqrt (a*a + b*b + c*c + d*d)
+-- |     norm (Quaternion w x y z) = Math.sqrt (w*w + x*x + y*y + z*z)
 -- |
 -- | For example:
 -- |
@@ -229,14 +228,14 @@ norm q = Math.sqrt (normSquare q)
 -- | than the actual norm, so may be useful in cases where you are worried
 -- | about performance. Defined as
 -- |
--- |     normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
+-- |     normSquare (Quaternion w x y z) = w*w + x*x + y*y + z*z
 -- |
 -- | For example:
 -- |
 -- |     normSquare (Quaternion 1.0 (-2.0) 3.0 (-4.0)) = 30.0
 -- |
 normSquare :: forall a. Semiring a => Quaternion a -> a
-normSquare (Quaternion a b c d) = a*a + b*b + c*c + d*d
+normSquare (Quaternion w x y z) = w*w + x*x + y*y + z*z
 
 -- | The ℓ^∞ norm (when considering the quaternions as a 4-dimensional real
 -- | vector space); returns the maximum absolute value of the four components.
@@ -260,8 +259,7 @@ k = Quaternion zero zero zero one
 
 -- | Multiplies both the real part and the vector part by the given scalar.
 scalarMul :: forall a. Semiring a => a -> Quaternion a -> Quaternion a
-scalarMul k' (Quaternion a b c d) =
-  Quaternion (k' * a) (k' * b) (k' * c) (k' * d)
+scalarMul k' = map (k' * _)
 
 -- | Scales the given quaternion, returning a quaternion pointing in the same
 -- | direction of unit norm; multiplying this by the original quaternion's
