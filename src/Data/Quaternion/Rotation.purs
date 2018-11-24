@@ -120,11 +120,7 @@ toAxisAngle (Rotation (Quaternion a b c d)) =
 -- |
 showAxisAngle :: Rotation -> String
 showAxisAngle q =
-  case toAxisAngle q of
-    { angle, axis } ->
-      "Rotation.fromAxisAngle " <>
-       "{ angle: " <> show angle <>
-       ", axis: " <> show axis <> "}"
+  "Rotation.fromAxisAngle " <> show (toAxisAngle q)
 
 -- | The inverse of a rotation; `inverse p` undoes the rotation represented by
 -- | `p`. The following should hold for any rotation `p`:
