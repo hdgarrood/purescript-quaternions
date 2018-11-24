@@ -50,7 +50,7 @@ instance arbRot :: Arbitrary ArbRot where
   arbitrary = go <$> smallNum <*> arbitrary
     where
     go angle (ArbV3 axis) =
-      ArbRot (Rotation.fromAngleAxis { angle, axis })
+      ArbRot (Rotation.fromAxisAngle { angle, axis })
 
 newtype ArbV3 = ArbV3 (Vec3 Number)
 
@@ -109,27 +109,27 @@ main = do
       && (foldr (-) 0.0 p == foldr (-) 0.0 p')
       <?> show { p }
 
-  log "fromAngleAxis and toAngleAxis are approximate inverses"
+  log "fromAxisAngle and toAxisAngle are approximate inverses"
   quickCheck \(ArbRot p) ->
     let
-      q = Rotation.fromAngleAxis (Rotation.toAngleAxis p)
+      q = Rotation.fromAxisAngle (Rotation.toAxisAngle p)
     in
       rApproxEq p q
       <?> show { p, q }
 
-  log "toAngleAxis returns a unit-length axis"
+  log "toAxisAngle returns a unit-length axis"
   quickCheck \(ArbRot p) ->
     let
-      { axis } = Rotation.toAngleAxis p
+      { axis } = Rotation.toAxisAngle p
     in
       approxEq (Vec3.magnitude axis) 1.0
       <?> show { p }
 
-  log "fromAngleAxis doesn't mind about the axis magnitude"
+  log "fromAxisAngle doesn't mind about the axis magnitude"
   quickCheck \(ArbV3 v) theta k ->
     let
-      p = Rotation.fromAngleAxis { angle: theta, axis: v }
-      q = Rotation.fromAngleAxis { angle: theta, axis: Vec3.scalarMul k v }
+      p = Rotation.fromAxisAngle { angle: theta, axis: v }
+      q = Rotation.fromAxisAngle { angle: theta, axis: Vec3.scalarMul k v }
     in
       rApproxEq p q
       <?> show { v, k }
@@ -175,11 +175,11 @@ main = do
     vApproxEq (Rotation.act (p <> q) v) (Rotation.act p (Rotation.act q v))
     <?> show { p, q, v }
 
-  -- log "(toMat4 <<< fromAngleAxis) equivalent to Data.Matrix.makeRotate"
+  -- log "(toMat4 <<< fromAxisAngle) equivalent to Data.Matrix.makeRotate"
   -- quickCheck \(ArbV3 axis) angle ->
   --   let
   --     dist = matDistance
   --             (Mat4.makeRotate angle axis)
-  --             (Rotation.toMat4 (Rotation.fromAngleAxis { angle, axis }))
+  --             (Rotation.toMat4 (Rotation.fromAxisAngle { angle, axis }))
   --   in
   --     approxEq dist 0.0 <?> ("angle: " <> show angle <> ", axis: " <> show axis)

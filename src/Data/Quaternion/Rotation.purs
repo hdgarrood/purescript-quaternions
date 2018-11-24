@@ -7,9 +7,9 @@ module Data.Quaternion.Rotation
   ( Rotation()
   , fromQuaternion
   , toQuaternion
-  , fromAngleAxis
-  , toAngleAxis
-  , showAngleAxis
+  , fromAxisAngle
+  , toAxisAngle
+  , showAxisAngle
   , fromRotationMatrix
   , toRotationMatrix
   , act
@@ -87,8 +87,8 @@ approxEq eps p q =
 -- | Construct a `Rotation` representing the rotation by the specified angle
 -- | (in radians) about the specified axis. The rotation is clockwise from the
 -- | point of view of someone looking along the direction of the rotation axis.
-fromAngleAxis :: { angle :: Number, axis :: Vec3 Number } -> Rotation
-fromAngleAxis { angle, axis } =
+fromAxisAngle :: { angle :: Number, axis :: Vec3 Number } -> Rotation
+fromAxisAngle { angle, axis } =
   let
     halfAngle = 0.5 * angle
     a = Math.sin halfAngle
@@ -98,12 +98,12 @@ fromAngleAxis { angle, axis } =
         Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
 
 -- | Gives the angle and axis that a rotation represents. The axis returned is
--- | a unit-length vector. This is approximately an inverse of `fromAngleAxis`,
--- | in that `fromAngleAxis <<< toAngleAxis == identity`. However,
--- | `toAngleAxis <<< fromAngleAxis` is not equal to the identity function,
+-- | a unit-length vector. This is approximately an inverse of `fromAxisAngle`,
+-- | in that `fromAxisAngle <<< toAxisAngle == identity`. However,
+-- | `toAxisAngle <<< fromAxisAngle` is not equal to the identity function,
 -- | because the axis returned will always be of unit length.
-toAngleAxis :: Rotation -> { angle :: Number, axis :: Vec3 Number }
-toAngleAxis (Rotation (Quaternion a b c d)) =
+toAxisAngle :: Rotation -> { angle :: Number, axis :: Vec3 Number }
+toAxisAngle (Rotation (Quaternion a b c d)) =
   let
     halfAngle = Math.acos a
     angle = halfAngle * 2.0
@@ -115,14 +115,14 @@ toAngleAxis (Rotation (Quaternion a b c d)) =
 -- | An alternative string representation, which can be useful for debugging.
 -- | For example:
 -- |
--- |     > showAngleAxis (fromQuaternion (i+j))
--- |     "Rotation.fromAngleAxis { angle: 3.141592653589793, axis: [0.7071067811865475,0.7071067811865475,0.0]}"
+-- |     > showAxisAngle (fromQuaternion (i+j))
+-- |     "Rotation.fromAxisAngle { angle: 3.141592653589793, axis: [0.7071067811865475,0.7071067811865475,0.0]}"
 -- |
-showAngleAxis :: Rotation -> String
-showAngleAxis q =
-  case toAngleAxis q of
+showAxisAngle :: Rotation -> String
+showAxisAngle q =
+  case toAxisAngle q of
     { angle, axis } ->
-      "Rotation.fromAngleAxis " <>
+      "Rotation.fromAxisAngle " <>
        "{ angle: " <> show angle <>
        ", axis: " <> show axis <> "}"
 
