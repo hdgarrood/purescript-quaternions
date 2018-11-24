@@ -111,6 +111,9 @@ import Math as Math
 -- | numbers; if this is not the case, some of the functions may exhibit
 -- | strange behaviour.
 -- |
+-- | The first argument to the `Quaternion` constructor is the real part, and
+-- | the other three components constitute the vector part.
+-- |
 -- | Because multiplication of quaternions is non-commutative, there is no
 -- | `CommutativeRing` instance, and consequently no `EuclideanRing` or `Field`
 -- | instance either.
