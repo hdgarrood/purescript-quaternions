@@ -159,13 +159,13 @@ main = do
       vApproxEq w1 w2
       <?> show { p, v }
 
-  -- log "fromRotationMatrix and toRotationMatrix are approximate inverses"
-  -- quickCheck \(ArbRot p) ->
-  --   let
-  --     q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
-  --   in
-  --     rApproxEq p q
-  --     <?> show { p, q }
+  log "fromRotationMatrix and toRotationMatrix are approximate inverses"
+  quickCheck \(ArbRot p) ->
+    let
+      q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
+    in
+      rApproxEq p q
+      <?> show { p, q }
 
   log "fromRotationMatrix avoids instability issues when the quaternion has one very small component"
   quickCheck \(VerySmallNum e) a b c ->
