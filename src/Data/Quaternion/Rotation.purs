@@ -20,6 +20,9 @@ module Data.Quaternion.Rotation
 
 import Prelude
 
+import Data.Foldable as Foldable
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Array as Array
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
 import Data.Quaternion as Q
 import Data.Quaternion.Vec3 (Vec3)
@@ -181,12 +184,62 @@ toRotationMatrix (Rotation (Quaternion w x y z)) =
 -- | this function is not defined.
 fromRotationMatrix :: Partial => Array Number -> Rotation
 fromRotationMatrix [a11, a21, a31, a12, a22, a32, a13, a23, a33] =
+  -- To avoid instability issues arising from division by zero or a number
+  -- close to zero, we first determine which component of the quaternion we are
+  -- going to return will have the largest absolute value, and then compute the
+  -- other three using that component. See Section 10.6.4 of F. Dunn, I.
+  -- Parberry, 3D Math Primer for Graphics and Game Development.
   let
-    qr = 0.5 * Math.sqrt (1.0 + a11 + a22 + a33)
-    qi = 0.25 / qr * (a32 - a23)
-    qj = 0.25 / qr * (a13 - a31)
-    qk = 0.25 / qr * (a21 - a12)
+    ww = a11    + a22 + a33
+    xx = a11    - a22 - a33
+    yy = (-a11) + a22 - a33
+    zz = (-a11) - a22 + a33
+
+    candidates = [ww, xx, yy, zz]
+    largest = fromMaybe ww (Foldable.maximum candidates)
   in
-    Rotation (Quaternion qr qi qj qk)
+    case Array.elemIndex largest candidates of
+      Just 0 ->
+        -- w is the largest
+        let
+          w = 0.5 * Math.sqrt (1.0 + ww)
+          k = 0.25 / w
+          x = k * (a32 - a23)
+          y = k * (a13 - a31)
+          z = k * (a21 - a12)
+        in
+          Rotation (Quaternion w x y z)
+      Just 1 ->
+        -- x is the largest
+        let
+          x = 0.5 * Math.sqrt (1.0 + xx)
+          k = 0.25 / x
+          w = k * (a32 - a23)
+          y = k * (a12 + a21)
+          z = k * (a31 + a13)
+        in
+          Rotation (Quaternion w x y z)
+      Just 2 ->
+        -- y is the largest
+        let
+          y = 0.5 * Math.sqrt (1.0 + yy)
+          k = 0.25 / y
+          w = k * (a13 - a31)
+          x = k * (a12 + a21)
+          z = k * (a23 + a32)
+        in
+          Rotation (Quaternion w x y z)
+      Just 3 ->
+        -- z is the largest
+        let
+          z = 0.5 * Math.sqrt (1.0 + zz)
+          k = 0.25 / z
+          w = k * (a21 - a12)
+          x = k * (a31 + a13)
+          y = k * (a23 + a32)
+        in
+          Rotation (Quaternion w x y z)
+      Just _ ->
+        crashWith "Unreachable"
 fromRotationMatrix _ =
   crashWith "Argument array is the wrong size; expected an array with 9 elements"

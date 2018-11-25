@@ -3,7 +3,7 @@ module Test.Main where
 import Prelude
 
 import Data.Array as Array
-import Data.Foldable (foldl, foldr, foldMap, sum)
+import Data.Foldable (class Foldable, foldl, foldr, foldMap, sum)
 import Data.Quaternion (Quaternion(..))
 import Data.Quaternion as Quaternion
 import Data.Quaternion.Rotation (Rotation)
@@ -15,8 +15,15 @@ import Effect.Console (log)
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 import Test.QuickCheck (quickCheck, (<?>))
+import Test.QuickCheck as QC
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen as Gen
+
+foldResults :: forall f. Foldable f => f QC.Result -> QC.Result
+foldResults = foldr combine QC.Success
+  where
+  combine QC.Success r = r
+  combine r@(QC.Failed str) _ = r
 
 -- Have a 3x3 matrix (in column-major order) act on a vector in 3D space via
 -- multiplication
@@ -32,6 +39,15 @@ newtype ArbQ = ArbQ (Quaternion Number)
 -- A generator of Number values between -100 and 100.
 smallNum :: Gen.Gen Number
 smallNum = map (\x -> (x * 200.0) - 100.0) arbitrary
+
+-- A generator of Number values between 0 and 1/100000.
+verySmallNum :: Gen.Gen Number
+verySmallNum = map (_ / 100000.0) arbitrary
+
+newtype VerySmallNum = VerySmallNum Number
+
+instance arbitraryVerySmallNum :: Arbitrary VerySmallNum where
+  arbitrary = VerySmallNum <$> verySmallNum
 
 instance arbQ :: Arbitrary ArbQ where
   arbitrary =
@@ -62,7 +78,7 @@ instance arbV3 :: Arbitrary ArbV3 where
       <*> smallNum
 
 epsilon :: Number
-epsilon = 0.00000001
+epsilon = 1e-8
 
 approxEq :: Number -> Number -> Boolean
 approxEq x y = Math.abs (x - y) < epsilon
@@ -143,13 +159,38 @@ main = do
       vApproxEq w1 w2
       <?> show { p, v }
 
-  log "fromRotationMatrix and toRotationMatrix are approximate inverses"
-  quickCheck \(ArbRot p) ->
+  -- log "fromRotationMatrix and toRotationMatrix are approximate inverses"
+  -- quickCheck \(ArbRot p) ->
+  --   let
+  --     q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
+  --   in
+  --     rApproxEq p q
+  --     <?> show { p, q }
+
+  log "fromRotationMatrix avoids instability issues when the quaternion has one very small component"
+  quickCheck \(VerySmallNum e) a b c ->
     let
-      q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
+      testWith :: Quaternion Number -> QC.Result
+      testWith p' =
+        let
+          p = Rotation.fromQuaternion p'
+          q = unsafePartial (Rotation.fromRotationMatrix (Rotation.toRotationMatrix p))
+        in
+          rApproxEq p q
+          <?> show { p, q }
+
+      z = 0.0
     in
-      rApproxEq p q
-      <?> show { p, q }
+      foldResults
+        [ testWith (Quaternion e a b c)
+        , testWith (Quaternion z a b c)
+        , testWith (Quaternion a e b c)
+        , testWith (Quaternion a z b c)
+        , testWith (Quaternion a b e c)
+        , testWith (Quaternion a b z c)
+        , testWith (Quaternion a b e c)
+        , testWith (Quaternion a b e z)
+        ]
 
   log "Rotations are versors"
   quickCheck \(ArbRot p) ->
@@ -174,7 +215,6 @@ main = do
   quickCheck \(ArbV3 v) (ArbRot p) (ArbRot q) ->
     vApproxEq (Rotation.act (p <> q) v) (Rotation.act p (Rotation.act q v))
     <?> show { p, q, v }
-
   -- log "(toMat4 <<< fromAxisAngle) equivalent to Data.Matrix.makeRotate"
   -- quickCheck \(ArbV3 axis) angle ->
   --   let
