@@ -85,6 +85,7 @@ module Data.Quaternion
   , j
   , k
   , scalarMul
+  , dot
   , conjugate
   , conjugateBy
   , approxEq
@@ -213,6 +214,14 @@ conjugate (Quaternion w x y z) =
 -- |
 conjugateBy :: forall a. DivisionRing a => Quaternion a -> Quaternion a -> Quaternion a
 conjugateBy p q = q * p * recip q
+
+-- | The dot product of quaternions. Defined as
+-- |
+-- |     \(Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) ->
+-- |       w1*w2 + x1*x2 + y1*y2 + z1*z2
+dot :: forall a. Semiring a => Quaternion a -> Quaternion a -> a
+dot (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
+  w1*w2 + x1*x2 + y1*y2 + z1*z2
 
 -- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
 -- | into a normed space; it is equivalent to the standard Euclidean norm on
