@@ -128,6 +128,14 @@ main = do
     Quaternion.scalarMul k p == (Quaternion k 0.0 0.0 0.0) * p
     <?> show { p, k }
 
+  log "versor/scalarMul identity"
+  quickCheck \(ArbQ q) ->
+    let
+      q' = Quaternion.scalarMul (Quaternion.norm q) (Quaternion.versor q)
+    in
+      qApproxEq q q'
+      <?> show { q, q' }
+
   log "Foldable instance agrees with arrays"
   quickCheck \(ArbQ p@(Quaternion a b c d)) ->
     -- Use a non-associative operator here so that foldl and foldr are

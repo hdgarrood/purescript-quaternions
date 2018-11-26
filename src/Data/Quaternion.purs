@@ -363,7 +363,11 @@ scalarMul k' = map (k' * _)
 
 -- | Scales the given quaternion, returning a quaternion pointing in the same
 -- | direction of unit norm; multiplying this by the original quaternion's
--- | norm will give you back the original quaternion.
+-- | norm will give you back the original quaternion. That is, for all
+-- | quaternions `q`, we have
+-- |
+-- |     scalarMul (norm q) (versor q) == q
+-- |
 versor :: Quaternion Number -> Quaternion Number
 versor q = scalarMul (1.0 / norm q) q
 
