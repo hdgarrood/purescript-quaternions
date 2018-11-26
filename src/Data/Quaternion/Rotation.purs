@@ -31,7 +31,6 @@ import Data.Quaternion.Vec3 (Vec3)
 import Data.Quaternion.Vec3 as Vec3
 import Math as Math
 import Partial (crashWith)
-import Partial.Unsafe (unsafePartial)
 
 -- | A rotation in three-dimensional space, represented by a unit quaternion
 -- | (also known as a versor).
@@ -122,9 +121,9 @@ fromAxisAngle { angle, axis } =
     halfAngle = 0.5 * angle
     a = Math.sin halfAngle
   in
-    unsafePartial $ case Vec3.toArray (Vec3.normalize axis) of
-      [x, y, z] ->
-        Rotation (Quaternion (Math.cos halfAngle) (a * x) (a * y) (a * z))
+    Rotation
+      (Q.fromReal (Math.cos halfAngle) +
+        Q.fromVector (Vec3.scalarMul a (Vec3.normalize axis)))
 
 -- | Gives the angle and axis that a rotation represents. The axis returned is
 -- | a unit-length vector. This is approximately an inverse of `fromAxisAngle`,
@@ -169,9 +168,7 @@ inverse (Rotation p) = Rotation (recip p)
 -- | * Compatibility: `act p (act q v) == act (p <> q) v`
 act :: Rotation -> Vec3 Number -> Vec3 Number
 act (Rotation p) v =
-  unsafePartial $ case Vec3.toArray v of
-    [x, y, z] ->
-      vectorPart (Quaternion zero x y z `conjugateBy` p)
+  Q.vectorPart (Q.conjugateBy (Q.fromVector v) p)
 
 -- | Though all functions in this library which create a `Rotation` ensure that
 -- | the underlying `Quaternion` has magnitude 1, after a sufficient number of
