@@ -313,12 +313,20 @@ log q =
     fromReal (Math.log normQ) + fromVector (Vec3.scalarMul (k' / normV) v)
 
 
--- | Raise a quaternion to the power of another quaternion. Defined as
+-- | Raise a quaternion to the power of a real number. Defined as
 -- |
--- |     pow p q = exp (q log p)
+-- |     \q t -> exp (scalarMul t (log q))
 -- |
-pow :: Quaternion Number -> Quaternion Number -> Quaternion Number
-pow p q = exp (q * log p)
+-- | We could define raising a quaternion to any quaternion power in a similar
+-- | way, but restricting the powers to real numbers ensures that this function
+-- | has desirable properties such as
+-- |
+-- |     pow q (a+b) = pow q a * pow q b
+-- |
+-- | for all quaternions `q`, and real numbers `a, b`. This is a consequence of
+-- | the fact that reals commute with all other quaternions.
+pow :: Quaternion Number -> Number -> Quaternion Number
+pow q t = exp (scalarMul t (log q))
 
 -- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
 -- | into a normed space; it is equivalent to the standard Euclidean norm on

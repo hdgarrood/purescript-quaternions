@@ -218,10 +218,18 @@ main = do
       test k =
         qApproxEq
           (intPower q k)
-          (Quaternion.pow q (Quaternion.fromReal (Int.toNumber k)))
+          (Quaternion.pow q (Int.toNumber k))
         <?> show { q, k }
     in
       foldResults (map test (Array.range (-6) 6))
+
+  log "Quaternion pow can be used for square roots"
+  quickCheck \(ArbQ q) ->
+    let
+      p = Quaternion.pow q 0.5
+    in
+      qApproxEq (p*p) q
+      <?> show { p, q }
 
   log "fromAxisAngle and toAxisAngle are approximate inverses"
   quickCheck \(ArbRot p) ->
