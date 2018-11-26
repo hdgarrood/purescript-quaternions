@@ -6,8 +6,8 @@ module Data.Quaternion.Vec3
   , vec3
   , toArray
   , fromArray
+  , norm
   , normalize
-  , magnitude
   , dot
   , vzero
   , vadd
@@ -79,8 +79,9 @@ scalarMul _ _ =
 -- | vector.
 normalize :: Vec3 Number -> Vec3 Number
 normalize v =
-  scalarMul (1.0 / magnitude v) v
+  scalarMul (1.0 / norm v) v
 
-magnitude :: Vec3 Number -> Number
-magnitude (Vec3 [x,y,z]) = Math.sqrt (x*x + y*y + z*z)
-magnitude _ = unsafeCrashWith "Vec3 invariant violated"
+-- | The Euclidean norm of a vector.
+norm :: Vec3 Number -> Number
+norm (Vec3 [x,y,z]) = Math.sqrt (x*x + y*y + z*z)
+norm _ = unsafeCrashWith "Vec3 invariant violated"

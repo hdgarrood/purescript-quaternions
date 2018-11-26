@@ -85,7 +85,7 @@ approxEq x y = Math.abs (x - y) < epsilon
 
 vApproxEq :: Vec3 Number -> Vec3 Number -> Boolean
 vApproxEq x y =
-  Vec3.magnitude (Vec3.vsub x y) < epsilon
+  Vec3.norm (Vec3.vsub x y) < epsilon
 
 qApproxEq :: Quaternion Number -> Quaternion Number -> Boolean
 qApproxEq = Quaternion.approxEq epsilon
@@ -138,10 +138,10 @@ main = do
     let
       { axis } = Rotation.toAxisAngle p
     in
-      approxEq (Vec3.magnitude axis) 1.0
+      approxEq (Vec3.norm axis) 1.0
       <?> show { p }
 
-  log "fromAxisAngle doesn't mind about the axis magnitude"
+  log "fromAxisAngle doesn't mind about the axis' magnitude"
   quickCheck \(ArbV3 v) theta k ->
     let
       p = Rotation.fromAxisAngle { angle: theta, axis: v }
