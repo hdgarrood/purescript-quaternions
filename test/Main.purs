@@ -4,6 +4,10 @@ import Prelude
 
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldl, foldr, foldMap, sum)
+import Data.Int as Int
+import Data.Monoid (power)
+import Data.Monoid.Multiplicative (Multiplicative(..))
+import Data.Newtype (unwrap)
 import Data.Quaternion (Quaternion(..))
 import Data.Quaternion as Quaternion
 import Data.Quaternion.Rotation (Rotation)
@@ -18,6 +22,14 @@ import Test.QuickCheck (quickCheck, (<?>))
 import Test.QuickCheck as QC
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen as Gen
+
+-- Raise a quaternion to an integer power. See also Data.Group.power
+intPower :: Quaternion Number -> Int -> Quaternion Number
+intPower p = unwrap <<< go
+  where
+  go k
+    | k < 0     = power (Multiplicative (recip p)) (negate k)
+    | otherwise = power (Multiplicative p) k
 
 foldResults :: forall f. Foldable f => f QC.Result -> QC.Result
 foldResults = foldr combine QC.Success
@@ -199,6 +211,17 @@ main = do
         [ y' == 0.0 && z' == 0.0 <?> show { w, z, msg: "expected z to be complex" }
         , -Math.pi <= x' && x' <= Math.pi <?> show { w, z, msg: "expected x' to be in [-pi, pi]" }
         ]
+
+  log "Quaternion pow works as expected for integers"
+  quickCheck \(ArbQ q) ->
+    let
+      test k =
+        qApproxEq
+          (intPower q k)
+          (Quaternion.pow q (Quaternion.fromReal (Int.toNumber k)))
+        <?> show { q, k }
+    in
+      foldResults (map test (Array.range (-6) 6))
 
   log "fromAxisAngle and toAxisAngle are approximate inverses"
   quickCheck \(ArbRot p) ->

@@ -93,6 +93,7 @@ module Data.Quaternion
   , approxEq
   , exp
   , log
+  , pow
   , norm
   , normSquare
   , infinityNorm
@@ -310,6 +311,14 @@ log q =
     k' = Math.acos (a / normQ)
   in
     fromReal (Math.log normQ) + fromVector (Vec3.scalarMul (k' / normV) v)
+
+
+-- | Raise a quaternion to the power of another quaternion. Defined as
+-- |
+-- |     pow p q = exp (q log p)
+-- |
+pow :: Quaternion Number -> Quaternion Number -> Quaternion Number
+pow p q = exp (q * log p)
 
 -- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
 -- | into a normed space; it is equivalent to the standard Euclidean norm on
