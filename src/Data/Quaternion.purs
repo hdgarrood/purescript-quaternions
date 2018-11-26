@@ -285,9 +285,10 @@ exp q@(Quaternion w x y z) =
 -- | `p`, and the `log` function just picks one of them.
 -- |
 -- | This function agrees with the standard real logarithm. More generally, it
--- | agrees with the standard complex logarithm, in that for a complex argument
--- | &mdash; that is, an argument with y and z components equal to zero &mdash;
--- | it returns a complex quaternion whose x component is between -pi and pi.
+-- | agrees with the principal value of the complex logarithm, in that for a
+-- | complex argument &mdash; that is, an argument with y and z components
+-- | equal to zero &mdash; it returns a complex quaternion whose x component is
+-- | between -π and π.
 -- |
 -- | Note that this function is not defined at zero.
 log :: Quaternion Number -> Quaternion Number
