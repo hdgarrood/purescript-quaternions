@@ -140,7 +140,7 @@ inverse (Rotation p) = Rotation (recip p)
 -- | which means that the following hold (approximately):
 -- |
 -- | * Identity: `act mempty == identity`
--- | * Compatibility: `act p (act q v) = act (p <> q) v`
+-- | * Compatibility: `act p (act q v) == act (p <> q) v`
 act :: Rotation -> Vec3 Number -> Vec3 Number
 act (Rotation p) v =
   unsafePartial $ case Vec3.toArray v of
