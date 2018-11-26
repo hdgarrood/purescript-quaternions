@@ -80,7 +80,9 @@
 module Data.Quaternion
   ( Quaternion(..)
   , realPart
+  , fromReal
   , vectorPart
+  , fromVector
   , i
   , j
   , k
@@ -104,8 +106,10 @@ import Data.Newtype (unwrap)
 import Data.Ord (abs)
 import Data.Ord.Max (Max(..))
 import Data.Quaternion.Vec3 (Vec3, vec3)
+import Data.Quaternion.Vec3 as Vec3
 import Data.Semigroup.Foldable (class Foldable1, foldMap1)
 import Math as Math
+import Partial.Unsafe (unsafePartial)
 
 -- | A quaternion. The type parameter denotes the underlying type. Note that
 -- | the underlying type should be a reasonable approximation of the real
@@ -194,6 +198,11 @@ instance divisionRingQuaternion :: DivisionRing a => DivisionRing (Quaternion a)
 realPart :: forall a. Quaternion a -> a
 realPart (Quaternion w _ _ _) = w
 
+-- | Construct a real quaternion (that is, a quaternion with vector part equal
+-- | to the zero vector) from a single real number.
+fromReal :: forall a. Semiring a => a -> Quaternion a
+fromReal w = Quaternion w zero zero zero
+
 -- | The vector part of the quaternion, that is, the second, third, and fourth
 -- | components, represented as an array with exactly 3 elements. Defined as
 -- |
@@ -201,6 +210,15 @@ realPart (Quaternion w _ _ _) = w
 -- |
 vectorPart :: forall a. Quaternion a -> Vec3 a
 vectorPart (Quaternion _ x y z) = vec3 x y z
+
+-- | Construct an imaginary quaternion (that is, a quaternion with real part
+-- | equal to zero) from a vector. The returned quaternion's vector part will
+-- | be equal to the argument supplied.
+fromVector :: forall a. Semiring a => Vec3 a -> Quaternion a
+fromVector v =
+  unsafePartial
+    case Vec3.toArray v of
+      [x, y, z] -> Quaternion zero x y z
 
 -- | The conjugate of a quaternion. This operation negates the vector part of
 -- | the quaternion.
