@@ -25,7 +25,7 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable as Foldable
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
+import Data.Quaternion (Quaternion(..))
 import Data.Quaternion as Q
 import Data.Quaternion.Vec3 (Vec3)
 import Data.Quaternion.Vec3 as Vec3
@@ -57,7 +57,7 @@ instance showRotation :: Show Rotation where
 
 -- | Construct a Rotation from any Quaternion, by normalizing to a versor.
 fromQuaternion :: Quaternion Number -> Rotation
-fromQuaternion = Rotation <<< versor
+fromQuaternion = Rotation <<< Q.versor
 
 -- | Get the underlying versor.
 toQuaternion :: Rotation -> Quaternion Number
@@ -176,7 +176,7 @@ act (Rotation p) v =
 -- | `normalize` can be used; `normalize` takes a possibly-drifted `Rotation`
 -- | and rescales if it necessary, so that its magnitude returns to 1.
 normalize :: Rotation -> Rotation
-normalize (Rotation q) = Rotation (versor q)
+normalize (Rotation q) = Rotation (Q.versor q)
 
 -- The functions for converting to and from matrices are taken from
 -- https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Rotation_matrix_.E2.86.94_quaternion
