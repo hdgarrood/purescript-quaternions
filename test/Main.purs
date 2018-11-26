@@ -125,6 +125,20 @@ main = do
       && (foldr (-) 0.0 p == foldr (-) 0.0 p')
       <?> show { p }
 
+  log "Quaternion exponential agrees with real exponential"
+  quickCheck \x ->
+    Quaternion.exp (Quaternion.fromReal x) == Quaternion (Math.exp x) 0.0 0.0 0.0
+    <?> show { x }
+
+  log "exp(p+q) = exp(p)*exp(q) when p, q commute"
+  quickCheck \x1 y1 x2 y2 ->
+    let
+      p = Quaternion x1 0.0 y1 0.0
+      q = Quaternion x2 0.0 y2 0.0
+    in
+      qApproxEq (Quaternion.exp (p + q)) (Quaternion.exp p * Quaternion.exp q)
+      <?> show { p, q }
+
   log "fromAxisAngle and toAxisAngle are approximate inverses"
   quickCheck \(ArbRot p) ->
     let

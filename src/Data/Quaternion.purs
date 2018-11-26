@@ -91,6 +91,7 @@ module Data.Quaternion
   , conjugate
   , conjugateBy
   , approxEq
+  , exp
   , norm
   , normSquare
   , infinityNorm
@@ -240,6 +241,37 @@ conjugateBy p q = q * p * recip q
 dot :: forall a. Semiring a => Quaternion a -> Quaternion a -> a
 dot (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
   w1*w2 + x1*x2 + y1*y2 + z1*z2
+
+-- | The quaternion exponential function. This function can be defined via a
+-- | power series in a similar way to the real or complex exponential
+-- | functions:
+-- |
+-- |     exp q = 1 + q + (q^2/2!) + (q^3/3!) + ...
+-- |
+-- | and if we let `q = a + v`, where `a` is the real part of `q` and `v` is
+-- | the vector part of `q`, then for nonzero `v`, it can be shown that this
+-- | definition can also be expressed as:
+-- |
+-- |     exp q = exp (a + v) = exp(a) * (cos (norm v) + (v/norm v) * sin (norm v))
+-- |
+-- | (see <https://math.stackexchange.com/questions/1030737/exponential-function-of-quaternion-derivation>).
+-- | The implementation uses the second definition.
+-- |
+-- | For real quaternions (that is, quaternions with a vector part equal to the
+-- | zero vector), this function coincides with the standard real exponential.
+-- |
+-- | Note that due to noncommutativity of quaternion multiplication, the
+-- | expected identity `exp (p + q) = exp p * exp q` will not necessarily hold
+-- | unless `p` and `q` commute.
+exp :: Quaternion Number -> Quaternion Number
+exp q@(Quaternion w x y z) =
+  let
+    v = Quaternion 0.0 x y z
+    normV = norm v
+    k' = if normV == 0.0 then 0.0 else Math.sin normV / normV
+  in
+    scalarMul (Math.exp w)
+      (Quaternion (Math.cos normV) (k'*x) (k'*y) (k'*z))
 
 -- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
 -- | into a normed space; it is equivalent to the standard Euclidean norm on
