@@ -14,15 +14,17 @@ module Data.Quaternion.Rotation
   , toRotationMatrix
   , act
   , inverse
+  , lerp
+  , slerp
   , normalize
   , approxEq
   ) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Foldable as Foldable
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Array as Array
 import Data.Quaternion (Quaternion(..), conjugateBy, vectorPart, versor)
 import Data.Quaternion as Q
 import Data.Quaternion.Vec3 (Vec3)
@@ -86,6 +88,30 @@ approxEq eps p q =
     q' = toQuaternion q
   in
     Q.approxEq eps p' q' || Q.approxEq eps (negate p') q'
+
+-- | **L**inear int**erp**olation of rotations.
+lerp :: Rotation -> Rotation -> Number -> Rotation
+lerp (Rotation p) (Rotation q) t =
+  fromQuaternion (Q.scalarMul (1.0-t) p + Q.scalarMul t q)
+
+-- | **S**pherical **l**inear int**erp**olation of rotations. This function
+-- | is useful for producing animations in which objects are rotating, since
+-- | `slerp` is guaranteed to produce constant-speed motion along a great
+-- | circle arc. See <https://en.wikipedia.org/wiki/Slerp>
+slerp :: Rotation -> Rotation -> Number -> Rotation
+slerp (Rotation p') (Rotation q) t =
+  let
+    dot = Q.dot p' q
+    -- Invert p if necessary to ensure that we take the shorter path
+    p = if dot < 0.0 then -p' else p'
+    -- If the arguments are very close together, we can hit numerical stability
+    -- issues. To avoid this, if the dot product surpasses this threshold, we
+    -- switch to linear interpolation.
+    threshold = 0.9995
+  in
+    if Math.abs dot > threshold
+      then lerp (Rotation p) (Rotation q) t
+      else fromQuaternion (p * (Q.pow (recip p * q) t))
 
 -- | Construct a `Rotation` representing the rotation by the specified angle
 -- | (in radians) about the specified axis. The rotation is clockwise from the
