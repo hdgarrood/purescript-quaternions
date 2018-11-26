@@ -201,7 +201,10 @@ realPart :: forall a. Quaternion a -> a
 realPart (Quaternion w _ _ _) = w
 
 -- | Construct a real quaternion (that is, a quaternion with vector part equal
--- | to the zero vector) from a single real number.
+-- | to the zero vector) from a single real number. This gives us the identity
+-- |
+-- |     fromReal (realPart q) + fromVector (vectorPart q) == q
+-- |
 fromReal :: forall a. Semiring a => a -> Quaternion a
 fromReal w = Quaternion w zero zero zero
 
@@ -215,7 +218,10 @@ vectorPart (Quaternion _ x y z) = vec3 x y z
 
 -- | Construct an imaginary quaternion (that is, a quaternion with real part
 -- | equal to zero) from a vector. The returned quaternion's vector part will
--- | be equal to the argument supplied.
+-- | be equal to the argument supplied. This gives us the identity
+-- |
+-- |     fromReal (realPart q) + fromVector (vectorPart q) == q
+-- |
 fromVector :: forall a. Semiring a => Vec3 a -> Quaternion a
 fromVector v =
   unsafePartial
@@ -223,7 +229,10 @@ fromVector v =
       [x, y, z] -> Quaternion zero x y z
 
 -- | The conjugate of a quaternion. This operation negates the vector part of
--- | the quaternion.
+-- | the quaternion. Defined as
+-- |
+-- |     \(Quaternion w x y z) ->
+-- |       Quaternion w (-x) (-y) (-z)
 conjugate :: forall a. Ring a => Quaternion a -> Quaternion a
 conjugate (Quaternion w x y z) =
   Quaternion w (-x) (-y) (-z)

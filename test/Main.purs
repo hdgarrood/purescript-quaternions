@@ -114,6 +114,15 @@ matDistance x y =
 
 main :: Effect Unit
 main = do
+  log "fromReal/fromVector identity"
+  quickCheck \(ArbQ q) ->
+    let
+      q' = Quaternion.fromReal (Quaternion.realPart q) +
+            Quaternion.fromVector (Quaternion.vectorPart q)
+    in
+      q == q'
+      <?> show { q, q' }
+
   log "scalarMul agrees with Quaternion multiplication"
   quickCheck \(ArbQ p) k ->
     Quaternion.scalarMul k p == (Quaternion k 0.0 0.0 0.0) * p
