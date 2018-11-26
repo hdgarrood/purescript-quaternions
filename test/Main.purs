@@ -93,7 +93,12 @@ vApproxEq x y =
   Vec3.norm (Vec3.vsub x y) < epsilon
 
 qApproxEq :: Quaternion Number -> Quaternion Number -> Boolean
-qApproxEq = Quaternion.approxEq epsilon
+qApproxEq p q =
+  let
+    -- Scale the tolerance based on the norms of the arguments
+    tolerance = Math.max (Quaternion.norm p) (Quaternion.norm q) / 1e12
+  in
+    Quaternion.approxEq tolerance p q
 
 -- Approximate equality for rotations
 rApproxEq :: Rotation -> Rotation -> Boolean
@@ -181,8 +186,7 @@ main = do
     in
       foldResults
         [ e1 == 0.0 && e2 == 0.0 <?> show { w, z, msg: "expected z to be complex" }
-        -- Be a bit more lenient here because z can be large
-        , Quaternion.approxEq 1e-6 z z' <?> show { w, z, z' }
+        , qApproxEq z z' <?> show { w, z, z' }
         ]
 
   log "log agrees with the principal value of the complex logarithm"
