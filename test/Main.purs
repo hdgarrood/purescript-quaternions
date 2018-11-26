@@ -40,6 +40,11 @@ newtype ArbQ = ArbQ (Quaternion Number)
 smallNum :: Gen.Gen Number
 smallNum = map (\x -> (x * 200.0) - 100.0) arbitrary
 
+newtype SmallNum = SmallNum Number
+
+instance arbitrarySmallNum :: Arbitrary SmallNum where
+  arbitrary = SmallNum <$> smallNum
+
 -- A generator of Number values between 0 and 1/100000.
 verySmallNum :: Gen.Gen Number
 verySmallNum = map (_ / 100000.0) arbitrary
@@ -138,6 +143,41 @@ main = do
     in
       qApproxEq (Quaternion.exp (p + q)) (Quaternion.exp p * Quaternion.exp q)
       <?> show { p, q }
+
+  log "exp <<< log == identity (approximately)"
+  quickCheck \(ArbQ q) ->
+    let
+      expLogQ = Quaternion.exp (Quaternion.log q)
+    in
+      qApproxEq expLogQ q
+      <?> show { q, expLogQ }
+
+  log "exp agrees with the complex exponential function"
+  quickCheck \(SmallNum x') (SmallNum y) ->
+    let
+      x = x' / 5.0 -- this gives us an x in [-20, 20]
+      w = Quaternion x y 0.0 0.0
+      z@(Quaternion _ _ e1 e2) = Quaternion.exp w
+      z' = Quaternion.scalarMul (Math.exp x)
+            (Quaternion.fromReal (Math.cos y) +
+              Quaternion.i * Quaternion.fromReal (Math.sin y))
+    in
+      foldResults
+        [ e1 == 0.0 && e2 == 0.0 <?> show { w, z, msg: "expected z to be complex" }
+        -- Be a bit more lenient here because z can be large
+        , Quaternion.approxEq 1e-6 z z' <?> show { w, z, z' }
+        ]
+
+  log "log agrees with the principal value of the complex logarithm"
+  quickCheck \(SmallNum x) (SmallNum y) ->
+    let
+      w = Quaternion x y 0.0 0.0
+      z@(Quaternion w' x' y' z') = Quaternion.log w
+    in
+      foldResults
+        [ y' == 0.0 && z' == 0.0 <?> show { w, z, msg: "expected z to be complex" }
+        , -Math.pi <= x' && x' <= Math.pi <?> show { w, z, msg: "expected x' to be in [-pi, pi]" }
+        ]
 
   log "fromAxisAngle and toAxisAngle are approximate inverses"
   quickCheck \(ArbRot p) ->

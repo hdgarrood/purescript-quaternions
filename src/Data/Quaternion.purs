@@ -92,6 +92,7 @@ module Data.Quaternion
   , conjugateBy
   , approxEq
   , exp
+  , log
   , norm
   , normSquare
   , infinityNorm
@@ -257,8 +258,11 @@ dot (Quaternion w1 x1 y1 z1) (Quaternion w2 x2 y2 z2) =
 -- | (see <https://math.stackexchange.com/questions/1030737/exponential-function-of-quaternion-derivation>).
 -- | The implementation uses the second definition.
 -- |
--- | For real quaternions (that is, quaternions with a vector part equal to the
--- | zero vector), this function coincides with the standard real exponential.
+-- | For real quaternions &mdash; that is, quaternions with a vector part equal
+-- | to the zero vector &mdash; this function coincides with the standard real
+-- | exponential function. More generally, for complex quaternions &mdash; that
+-- | is, quaternions with y and z component equal to zero &mdash; this function
+-- | coincides with the complex exponential function.
 -- |
 -- | Note that due to noncommutativity of quaternion multiplication, the
 -- | expected identity `exp (p + q) = exp p * exp q` will not necessarily hold
@@ -272,6 +276,30 @@ exp q@(Quaternion w x y z) =
   in
     scalarMul (Math.exp w)
       (Quaternion (Math.cos normV) (k'*x) (k'*y) (k'*z))
+
+-- | The quaternion logarithm function. This function is the right inverse of
+-- | the quaternion exponential function, that is, `exp <<< log` is
+-- | approximately equal to the identity function. Note that `log <<< exp` is
+-- | not equal to the identity function, because in general there will be many
+-- | distinct quaternions `q` satisfying `exp q = p` for some fixed quaternion
+-- | `p`, and the `log` function just picks one of them.
+-- |
+-- | This function agrees with the standard real logarithm. More generally, it
+-- | agrees with the standard complex logarithm, in that for a complex argument
+-- | &mdash; that is, an argument with y and z components equal to zero &mdash;
+-- | it returns a complex quaternion whose x component is between -pi and pi.
+-- |
+-- | Note that this function is not defined at zero.
+log :: Quaternion Number -> Quaternion Number
+log q =
+  let
+    a = realPart q
+    v = vectorPart q
+    normQ = norm q
+    normV = Vec3.norm v
+    k' = Math.acos (a / normQ)
+  in
+    fromReal (Math.log normQ) + fromVector (Vec3.scalarMul (k' / normV) v)
 
 -- | The standard (Euclidean) norm of a quaternion. This makes the quaternions
 -- | into a normed space; it is equivalent to the standard Euclidean norm on
